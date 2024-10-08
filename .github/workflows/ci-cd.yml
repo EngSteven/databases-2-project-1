@@ -29,14 +29,14 @@ jobs:
         echo "::set-output name=version::$VERSION"
 
     - name: Build the Docker image
-      if: success()  # Solo construir la imagen si los tests y el coverage pasaron
+      if: success()  # solo construir la imagen si los tests y el coverage pasaron
       run: |
         echo "${{ secrets.DOCKER_PASSWORD }}" | docker login ghcr.io --username EngSteven --password-stdin
         docker build . --file Dockerfile --tag ghcr.io/engsteven/py01-bd2:${{ steps.version.outputs.version }}
         docker push ghcr.io/engsteven/py01-bd2:${{ steps.version.outputs.version }}
 
     - name: Incrementar versión
-      if: success()  # Solo incrementar la versión si los tests y el coverage pasaron
+      if: success()  # solo incrementar la versión si los tests y el coverage pasaron
       run: |
         chmod +x increment_version.sh
         bash increment_version.sh

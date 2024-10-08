@@ -11,6 +11,22 @@ jobs:
   test:
     runs-on: ubuntu-latest
 
+    services:
+      postgres:
+        image: postgres
+        env:
+          POSTGRES_USER: user
+          POSTGRES_PASSWORD: password
+          POSTGRES_DB: db
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd="pg_isready"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=5
+
+
     steps:
     - name: Checkout code
       uses: actions/checkout@v3
@@ -25,7 +41,16 @@ jobs:
         pip install poetry
         poetry install
 
+    - name: Wait for PostgreSQL to be ready
+      run: sleep 10
+
     - name: Run tests and check coverage
+      env:
+        DB_HOST: localhost
+        DB_PORT: 5432
+        DB_NAME: db
+        DB_USER: user
+        DB_PASSWORD: password
       run: |
         poetry run coverage run test-api.py
         poetry run coverage report --fail-under=85

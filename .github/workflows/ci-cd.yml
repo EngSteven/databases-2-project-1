@@ -46,9 +46,9 @@ jobs:
 
     - name: Run tests and check coverage
       env:
-        DB_HOST: localhost
+        DB_HOST: db
         DB_PORT: 5432
-        DB_NAME: db
+        DB_NAME: database
         DB_USER: user
         DB_PASSWORD: password
       run: |

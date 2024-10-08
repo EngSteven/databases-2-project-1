@@ -27,7 +27,7 @@ jobs:
 
     - name: Run tests and check coverage
       run: |
-        poetry run coverage run api-test.py
+        poetry run coverage run test-api.py
         poetry run coverage report --fail-under=85
 
   build:

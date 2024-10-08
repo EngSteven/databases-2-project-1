@@ -30,10 +30,10 @@ jobs:
 
     - name: Build the Docker image
       run: |
-        docker login --username EngSteven --password ${{ secrets.DOCKER_PASSWORD }} ghcr.io
+        echo "${{ secrets.DOCKER_PASSWORD }}" | docker login ghcr.io --username EngSteven --password-stdin
         docker build . --file Dockerfile --tag ghcr.io/engsteven/py01-bd2:${{ steps.version.outputs.version }}
         docker push ghcr.io/engsteven/py01-bd2:${{ steps.version.outputs.version }}
-
+    
     - name: Incrementar versión
       run: |
         chmod +x increment_version.sh

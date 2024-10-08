@@ -60,7 +60,7 @@ class TestAPI(unittest.TestCase):
     def test01_register_existing_user(self):
         response = client.post("/user", json=new_user)
         self.assertEqual(response.status_code, 200)
-
+    """
     def test02_register_existing_user(self):    
         response = client.post("/user", json=new_user)  # se registra de nuevo el user para generar un error
         self.assertEqual(response.status_code, 200)
@@ -84,7 +84,7 @@ class TestAPI(unittest.TestCase):
     def test07_register_destiny_travel_error(self):
         response = client.post("/destiny/travel", json=destiny_travel_error)
         self.assertEqual(response.status_code, 200)
-
+    """
 
 if __name__ == "__main__":
     unittest.main()

@@ -2,9 +2,11 @@ import unittest
 from fastapi.testclient import TestClient
 from app import app 
 
+# constantes 
+ERROR_LESS_FIELDS = "error: no se han ingresado todos los campos requeridos"
 
-# Crear un cliente de prueba para la API
 client = TestClient(app)
+
 new_user = {
     "username": "steven1234",
     "password": "1234",
@@ -15,6 +17,11 @@ nonexisting_user = {
     "username": "sofia506",
     "password": "1324",
     "email": "sofia@gmail.com"
+}
+
+incomplete_user = {
+    "username": "steven12345",
+    "password": "1234"
 }
 
 travel = {
@@ -56,7 +63,7 @@ print("\nPruebas\n")
 
 class TestAPI(unittest.TestCase):   
 
-    def test01_register_existing_user(self):
+    def test01_register_nonexisting_user(self):
         response = client.post("/user", json=new_user)
         self.assertEqual(response.status_code, 200)
     
@@ -64,23 +71,31 @@ class TestAPI(unittest.TestCase):
         response = client.post("/user", json=new_user)  # se registra de nuevo el user para generar un error
         self.assertEqual(response.status_code, 200)
 
-    def test03_register_travel(self):                   
+    def test03_register_user_field_required(self):    
+        response = client.post("/user", json=incomplete_user)  # datos de usuario incompletos 
+        
+        self.assertEqual(response.status_code, 422)
+        error_response = response.json()
+        self.assertIn("password", str(error_response))
+        self.assertIn("email", str(error_response))
+
+    def test04_register_travel(self):                   
         response = client.post("/travel", json=travel)
         self.assertEqual(response.status_code, 200)
 
-    def test04_register_travel_error(self):                   
+    def test05_register_travel_error(self):                   
         response = client.post("/travel", json=travel_error)    # se intenta registrar un travel a un user que no existe
         self.assertEqual(response.status_code, 200)
 
-    def test05_register_destiny(self):
+    def test06_register_destiny(self):
         response = client.post("/destiny", json=destiny)
         self.assertEqual(response.status_code, 200)
 
-    def test06_register_destiny_travel(self):
+    def test07_register_destiny_travel(self):
         response = client.post("/destiny/travel", json=destiny_travel)
         self.assertEqual(response.status_code, 200)
 
-    def test07_register_destiny_travel_error(self):
+    def test08_register_destiny_travel_error(self):
         response = client.post("/destiny/travel", json=destiny_travel_error)
         self.assertEqual(response.status_code, 200)
     

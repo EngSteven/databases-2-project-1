@@ -35,6 +35,25 @@ class Database:
         except psycopg2.Error as e:
             self.connection.rollback()
             raise HTTPException(status_code=500, detail=f"Error al registrar el usuario: {e.pgerror}")
+        
+
+    def login(self, login: Login):
+        try:
+            cur = self.connection.cursor()
+
+            cur.execute('SELECT login(%s,%s)', (login.username, login.password))
+            
+            status = cur.fetchone()[0]
+                        
+            self.connection.commit()
+            cur.close()
+
+            return status
+
+        except psycopg2.Error as e:
+            self.connection.rollback()
+            raise HTTPException(status_code=500, detail=f"Error realizar el login: {e.pgerror}")
+
 
     def register_travel(self, travel: TravelRegister):
         try:

@@ -1,7 +1,7 @@
 \c database;
 
 
--- FUNCIONES PARA USUARIO 
+----------------------------------------- FUNCIONES PARA USUARIO -----------------------------------------
 
 
 CREATE OR REPLACE FUNCTION public.register_user(IN _username VARCHAR, IN _password VARCHAR, IN _email VARCHAR)
@@ -33,7 +33,34 @@ END;
 $$;
 
 
--- FUNCIONES PARA TRAVEL
+
+CREATE OR REPLACE FUNCTION public.login(IN _username VARCHAR, IN _password VARCHAR)
+RETURNS INTEGER
+LANGUAGE 'plpgsql'
+AS $$
+
+DECLARE 
+    user_exists BOOLEAN;
+BEGIN
+
+	-- Verifica si el usuario existe
+	SELECT EXISTS (SELECT 1 FROM users WHERE username = _username AND password = _password) INTO user_exists;
+	
+    IF user_exists THEN
+		RETURN 1; 		-- Los datos del usario son correctos
+	ELSE
+        RETURN 0; 		-- Los datos del usuario son incorrectos
+	END IF;
+END;
+$$;
+
+
+
+
+
+
+
+-------------------------------------- FUNCIONES PARA TRAVEL ------------------------------------------
 
 
 CREATE OR REPLACE FUNCTION public.register_travel(
@@ -69,7 +96,8 @@ $$;
 
 
 
--- FUNCIONES PARA Destinies
+
+----------------------------------- FUNCIONES PARA Destinies -------------------------------------------
 
 
 CREATE OR REPLACE FUNCTION public.register_destiny(
@@ -95,7 +123,7 @@ $$;
 
 
 
--- FUNCIONES PARA viajes destino
+---------------------------------------- FUNCIONES PARA viajes destino ---------------------------------
 
 
 CREATE OR REPLACE FUNCTION public.register_destiny_travel(

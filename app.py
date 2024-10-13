@@ -1,6 +1,7 @@
 import uvicorn
 from fastapi import FastAPI
 from routes import user_routes, travel_routes, destiny_routes
+from auth import verify_token, oauth2_scheme
 
 app = FastAPI()
 

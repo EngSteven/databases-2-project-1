@@ -1,28 +1,29 @@
-# TC01 DockerRestAPI
+# Proyecto 1 de Base de datos 2 TEC (Red Social de Viajes)
 
-# Gestor de Tareas con Flask y PostgreSQL
+## Autores: 
+- Steven Sequeira 
+- Brayton Solano
+- Julian Madrigal
 
-Este proyecto es una sistema rest-api para la gestión y autenticación de usuarios, así como para la publicación de diferentes tipos de posts.
+# Introducción
+
+## Descripción
+
+Este proyecto consiste en desarrollar el backend de una red social orientada a compartir experiencias de
+viaje. El objetivo es que los usuarios puedan realizar publicaciones sobre sus viajes, agregar destinos a sus listas de objetivos de viaje y que otros usuarios interactúen con estas publicaciones mediante comentarios, likes y reacciones. Además, los usuarios podrán crear listas de destinos de viaje y asociar lugares a cada viaje. No se requiere frontend; el enfoque está en el backend, utilizando bases de datos Postgres, MongoDB y Redis, y desplegando todo el sistema mediante Docker y Docker Compose.
+
 
 ## Funcionalidades principales 
 
-- Autenticación de usuarios mediante JWT.
-- Creación, actualización, lectura y eliminación de usuarios.
-- Escritura de posts, tales como imágenes, textos y videos.
-- Visualización de tareas por usuario y por ID de tarea.
+- 
 
 ## Herramientas principales usadas
-- Python como lenguaje principal para el backend.
-- Fastapi como framework para la gestión del sistema.
-- JWT para autenticación.
-- Postman para la documentación de los endpoints.
-- Doker y Dockercompose.
-- Postgresql para la base de datos.
+- 
 
 ## Enlace a la documentación de la API 
-[Click here](https://documenter.getpostman.com/view/37666062/2sAXjDdudZ)
 
-# Commandos 
+
+# Comandos 
 
 ## Construye y ejecuta el contenedor de docker
 ``` bash
@@ -47,102 +48,51 @@ docker compose exec webapp poetry run coverage report
 
 # Endpoints usando Postman
 
-## Inicio de sesión
-Se selecciona un método POST y se ingresa en un body de tipo x-www-form-urlencoded, con una key username y otra key password
-### Request
+## 1. Registrar usuario
+Se selecciona un método POST y se ingresa en un body de tipo raw el nombre de usuario, la contraseña, y el email.
+### Ruta
+``` bash
+localhost:8000/user
+```
+### Body de ejemplo
+``` bash
+{
+    "username": "sebas2043",
+    "password": "12345",
+    "email": "sebassequeira12@gmail.com"
+}
+```
+
+## 2. Inicio de sesión
+Se selecciona un método POST y se ingresa en un body de tipo raw el nombre de usuario y la contraseña
+### Ruta
 ``` bash
 localhost:8000/login
 ```
-### Ejemplo
-<img src="login-example.png"/>
-
-## Registrar usuario
-Se selecciona un método POST y se ingresa en un body de tipo raw el nombre de usuario, la contraseña, y el rol.
-### Request
-``` bash
-localhost:8000/register
-```
 ### Body de ejemplo
 ``` bash
 {
-    "username": "alex27",
-    "password": "holamundo",
-    "role": "editor"
+    "username": "sebas2043",
+    "password": "12345"
 }
 ```
 
-## Obtener usuarios
-Se selecciona un método GET.
-### Request
-``` bash
-localhost:8000/read
-```
-
-## Eliminar un usuario mediante el nombre de usuario
-Se selecciona un método DELETE y se ingresa en un body de tipo raw el nombre de usuario.
-### Request
-``` bash
-localhost:8000/delete
-```
+## 3. Travel
+Se selecciona un método POST y se ingresa en un body de tipo raw los datos como el siguiente ejemplo
 ### Body de ejemplo
 ``` bash
 {
-    "username": "steven"
+    "user_id": 2,
+    "title": "Vacaciones en la playa",
+    "description": "Un viaje a la playa con amigos.",
+    "ini_date": "2024-10-01",
+    "end_date": "2024-10-10"
 }
 ```
 
-## Eliminar un usuario mediante el id del usuario
-Se selecciona un método DELETE y se ingresa en un body de tipo raw el id.
-### Request
+### Ruta 
 ``` bash
-localhost:8000/id/delete
-```
-### Body de ejemplo
-``` bash
-{
-    "id": 10
-}
+localhost:8000/travel
 ```
 
-## Actualizar usuario mediante id
-Se selecciona un método PUT y se ingresa en un body de tipo raw el id de usuario, el nombre de usuario, la contraseña y el role.
-### Request
-``` bash
-localhost:8000/id/update
-```
-### Body de ejemplo
-``` bash
-{
-    "id" : 10,
-    "username": "alex27",
-    "password": "holamundo",
-    "role": "editor"
-}
-```
 
-## Actualizar usuario mediante username
-Se selecciona un método PUT y se ingresa en un body de tipo raw el nombre de usuario, la contraseña y el role.
-### Request
-``` bash
-localhost:8000/update
-```
-### Body de ejemplo
-``` bash
-{
-    "username": "alex27",
-    "password": "holamundo",
-    "role": "editor"
-}
-```
-
-## Escritura de posts
-Se selecciona un método POST y se ingresa en un body de tipo form-data, con una key file, de tipo File y se carga en el Value el archivo (texto, imágen o video) requerido desde su máquina. 
-
-Ese archivo debe estar en su Postman/files, normalmente ubicado en: C:\Users\username\Postman\files
-
-### Request
-``` bash
-localhost:8000/posts
-```
-### Ejemplo
-<img src="posts-example.png"/>

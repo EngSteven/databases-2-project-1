@@ -13,6 +13,8 @@ services:
       DB_USER: user
       DB_PASSWORD: password
       DB_DB: database
+      REDIS_HOST: redis  
+      REDIS_PORT: 6379   # puerto por defecto de Redis
     ports:
       - 8000:8000
     networks:
@@ -23,6 +25,7 @@ services:
 
     depends_on:
       - db
+      - redis  
 
   db:
     image: postgres
@@ -35,6 +38,13 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data
       - ./database/:/docker-entrypoint-initdb.d/
+    networks:
+      - default
+
+  redis:
+    image: redis:alpine  
+    ports:
+      - 6379:6379
     networks:
       - default
 

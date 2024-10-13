@@ -152,6 +152,14 @@ class TestAPI(unittest.TestCase):
         response = client.post("/destiny/travel", json=destiny_travel_error)
         self.assertEqual(response.status_code, 200, "Se esperaba un error por ID de viaje inválido.")
     
+    def test_13_logout(self):                   
+        headers = {
+            "Authorization": f"Bearer {TestAPI.user_token}"
+        }
+
+        response = client.post("/logout", json=travel, headers=headers)
+
+        self.assertEqual(response.status_code, 200, "Se esperaba un logout exitoso.")
 
 if __name__ == "__main__":
     unittest.main()

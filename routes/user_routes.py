@@ -1,4 +1,4 @@
-from fastapi import APIRouter
+from fastapi import APIRouter, Depends
 from models.schemas import *
 from postgresql_data import Database  
 from auth import * 
@@ -36,5 +36,14 @@ async def login(user: Login):
 
     return "Login fallido"
     
+
+@router.post("/logout")
+async def logout(token: str = Depends(oauth2_scheme)):
+    username = verify_token(token)
+
+    # eliminar el token del usuario en Redis para invalidar la sesión
+    redis_client.delete(username)
+
+    return {"message": "Logout exitoso"}
 
 

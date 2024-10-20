@@ -49,4 +49,41 @@ class DestinyRegister(BaseModel):
 class DestinyTravelRegister(BaseModel):
     travel_id: int
     destiny_id: int
+
+class Reaccion(Enum):
+    me_gusta = "me gusta"
+    me_encanta = "me encanta"
+    me_enamora = "me enamora"
+    me_asombra = "me asombra"
+    me_entristece = "me entristece"
+    me_enoja = "me enoja"
+
+class Likes(BaseModel):
+    react_id: int
+    user_id: int
+    reaccion: Reaccion
+
+class Comentario(BaseModel):
+    coment_id: int
+    user_id: int
+    coment_text: str
+    reacciones: list
+
+class Post(BaseModel):
+    post_id: int
+    user_id: int
+    text: str
+    images: list
+    comentarios: list
+    reacciones: list
+
+class PostRequest(BaseModel):
+    #user_id: int
+    text: str
+    images: list
+
+class ComentarioRequest(BaseModel):
+    user_id: int
+    coment_text: str
+
     

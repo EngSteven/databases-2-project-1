@@ -13,6 +13,11 @@ services:
       DB_USER: user
       DB_PASSWORD: password
       DB_DB: database
+      MONGO_HOST: mongo 
+      MONGO_PORT: 27017  
+      MONGO_USER: root 
+      MONGO_DB: db_mongo
+      MONGO_PASSWORD: password
       REDIS_HOST: redis  
       REDIS_PORT: 6379   # puerto por defecto de Redis
     ports:
@@ -26,6 +31,7 @@ services:
     depends_on:
       - db
       - redis  
+      - mongo
 
   db:
     image: postgres
@@ -41,29 +47,30 @@ services:
     networks:
       - default
     
-  mongodb:
+  mongo:
     image: mongo
-    container_name: mongo
     restart: always
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: root
+      MONGO_INITDB_ROOT_PASSWORD: password
     ports:
       - 27017:27017
     networks:
       - default
-    environment:
-      MONGO_INITDB_ROOT_USERNAME: root
-      MONGO_INITDB_ROOT_PASSWORD: root
+    volumes:
+      - ./mongo_data:/docker-entrypoint-initdb.d
 
-  mongoexpress:
+  mongo-express:
     image: mongo-express
     restart: always
-    ports:
-      - 8081:8081
     networks:
       - default
+    ports:
+      - 8081:8081
     environment:
-      ME_CONFIG_MONGODB_SERVER: mongodb
       ME_CONFIG_MONGODB_ADMINUSERNAME: root
-      ME_CONFIG_MONGODB_ADMINPASSWORD: root
+      ME_CONFIG_MONGODB_ADMINPASSWORD: password
+      ME_CONFIG_MONGODB_URL: mongodb://root:password@mongo:27017/
 
   redis:
     image: redis:alpine  

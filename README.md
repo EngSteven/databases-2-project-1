@@ -77,7 +77,14 @@ localhost:8000/login
 }
 ```
 
+Si todo sale bien verá un token de autenticación como retorno. Guardelo para poder usarlo en las demás pruebas.
+
 ## 3. Travel
+### Ruta 
+``` bash
+localhost:8000/travel
+```
+
 Se selecciona un método POST y se ingresa en un body de tipo raw los datos como el siguiente ejemplo
 ### Body de ejemplo
 ``` bash
@@ -90,9 +97,7 @@ Se selecciona un método POST y se ingresa en un body de tipo raw los datos como
 }
 ```
 
-### Ruta 
-``` bash
-localhost:8000/travel
-```
+Ademas se ingresa en Headers una Key "Autorization" con un Value "Bearer <token autenticacion>"
+
 
 

@@ -78,7 +78,7 @@ class Post(BaseModel):
     reacciones: list
 
 class PostRequest(BaseModel):
-    #user_id: int
+    user_id: int
     text: str
     images: list
 

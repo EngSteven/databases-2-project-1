@@ -1,6 +1,52 @@
 from pymongo import MongoClient
 from models.schemas import *
+import os
 
+config = {
+    "host": os.getenv("MONGO_HOST"), 
+    "port": int(os.getenv("MONGO_PORT")), 
+    "username": os.getenv("MONGO_USER"),
+    "password": os.getenv("MONGO_PASSWORD"),
+    "database": os.getenv("MONGO_DB")
+}
+
+class DatabaseMongo:
+    def __init__(self):
+        client = MongoClient(
+            host=config["host"],
+            port=config["port"],
+            username=config["username"],
+            password=config["password"]
+        )
+        self.db = client[config["database"]]
+
+    def serialize_object_ids(self, docs):
+        """Serializa una lista de documentos convirtiendo sus ObjectId a cadenas."""
+        for doc in docs:
+            if '_id' in doc:
+                doc['_id'] = str(doc['_id'])  # convierte ObjectId a cadena
+        return docs
+
+    def get_user_posts(self, user_id):
+        res = list(self.db.posts.find({"usuario_id": user_id}))
+        return self.serialize_object_ids(res)
+
+    def insert_post(self, post: PostRequest):
+        post_data = {
+            'usuario_id': post.user_id,
+            'text': post.text,
+            'images': post.images,
+            'reacciones': [],
+            'comentarios': []
+        }
+
+        res = self.db.posts.insert_one(post_data)
+        post_data['_id'] = str(res.inserted_id)     # convertir el ObjectId a cadena
+    
+        return post_data
+
+
+"""
 class DatabaseMongo:
     def __init__(self):
         self.connection_string = 'mongodb://localhost:27017/'
@@ -73,4 +119,4 @@ class DatabaseMongo:
                 {'$push' : {'reacciones' : reaccion}}
             )
 
-        
+"""

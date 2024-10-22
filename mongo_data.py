@@ -20,6 +20,9 @@ class DatabaseMongo:
         )
         self.db = client[config["database"]]
 
+    def close_connection(self):
+        self.client.close()  
+
     def serialize_object_ids(self, docs):
         """Serializa una lista de documentos convirtiendo sus ObjectId a cadenas."""
         for doc in docs:

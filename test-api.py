@@ -103,7 +103,7 @@ class TestAPI(unittest.TestCase):
         self.assertIn("password", str(error_response), "Falta el campo 'password' en la respuesta de error.")
         self.assertIn("email", str(error_response), "Falta el campo 'email' en la respuesta de error.")
 
-    """
+    
     def test_04_login_nonexisting_user(self): 
         response = client.post("/login", json=login_error)      # login con usuario no valido
         self.assertEqual(response.status_code, 200, "Se esperaba un error por usuario inexistente.")
@@ -123,7 +123,7 @@ class TestAPI(unittest.TestCase):
         self.assertIn("access_token", response_data, "Se esperaba recibir un 'access_token'.")
         # guardar el token para usarlo en otras pruebas
         TestAPI.user_token = response_data["access_token"]    
-    """
+    
     
     def test_07_register_travel(self):                   
         response = client.post("/travels/travel", json=travel)
@@ -164,7 +164,7 @@ class TestAPI(unittest.TestCase):
         response = client.post("/wishlists/wishlist", json=wishlist_error)  # Se intenta registrar un travel con un ID de usuario inválido
         self.assertEqual(response.status_code, 200, "Se esperaba un error por ID de usuario no existente.")  
     
-    """
+    
     def test_16_logout(self):                   
         headers = {
             "Authorization": f"Bearer {TestAPI.user_token}"
@@ -173,7 +173,8 @@ class TestAPI(unittest.TestCase):
         response = client.post("/logout", json=travel, headers=headers)
 
         self.assertEqual(response.status_code, 200, "Se esperaba un logout exitoso.")
-    """
+    
     
 if __name__ == "__main__":
     unittest.main()
+

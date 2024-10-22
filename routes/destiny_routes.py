@@ -36,3 +36,4 @@ async def register_destiny(destiny: DestinyRegister):
         return {"Destiny": res}
     
     return {"Error": "Usuario ingresado no existe"}
+

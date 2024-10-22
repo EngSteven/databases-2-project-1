@@ -51,7 +51,16 @@ class DestinyRegister(BaseModel):
 class WishlistRegister(BaseModel):
     user_id: int
     list_name: str
-    destinies: list 
+    destinies: list
+
+class WishlistFollow(BaseModel):
+    user_id: int
+    wishlist_id: str 
+
+class WishlistDestiny(BaseModel):
+    user_id: int
+    wishlist_id: str 
+    destiny_id: str
 
 class Reaccion(Enum):
     me_gusta = "me gusta"

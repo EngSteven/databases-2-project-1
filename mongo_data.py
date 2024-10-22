@@ -1,5 +1,6 @@
 from pymongo import MongoClient
 from models.schemas import *
+from bson import ObjectId
 import os
 
 config = {
@@ -87,6 +88,8 @@ class DatabaseMongo:
         return destiny_data
     
 
+
+
     def get_wishlists(self):
         res = list(self.db.wishlists.find())
         return self.serialize_object_ids(res)
@@ -96,13 +99,94 @@ class DatabaseMongo:
             'user_id': wishlist.user_id,
             'list_name' : wishlist.list_name,
             'destinies' : wishlist.destinies,
-            'followers' : []
+            'followers' : [],
+            'num_followers': 0
         }
 
         res = self.db.wishlists.insert_one(wishlist_data)
         wishlist_data['_id'] = str(res.inserted_id)     # convertir el ObjectId a cadena
         return wishlist_data
+    
+    def follow_wishlist(self, wishlist: WishlistFollow):
+        wishlist_id = ObjectId(wishlist.wishlist_id)  # ID de la wishlist
+        user_id = wishlist.user_id
 
+        # verificar si el user_id está en la lista de followers
+        is_follower = self.db.wishlists.find_one(
+            { "_id": wishlist_id, "followers": user_id }
+        )
+
+        if not is_follower:
+            # Si el user_id no está en la lista
+            res = self.db.wishlists.update_one(
+                { "_id": wishlist_id },
+                {
+                    "$addToSet": { "followers": user_id },   # Elimina el ID del usuario de la lista de followers
+                    "$inc": { "num_followers": 1 }      # Decrementa el num_followers en 1
+                }
+            )
+
+            if res.modified_count > 0:
+                return "Follow realizado exitosamente."
+            else:
+                return "No se pudo actualizar la wishlist."
+        else:
+            return "El usuario ya estaba siguiendo la wishlist o la wishlist ingresada no existe."
+
+        
+        
+    def remove_follow_wishlist(self, wishlist: WishlistFollow):
+        wishlist_id = ObjectId(wishlist.wishlist_id)  # ID de la wishlist
+        user_id = wishlist.user_id
+
+        # verificar si el user_id está en la lista de followers
+        is_follower = self.db.wishlists.find_one(
+            { "_id": wishlist_id, "followers": user_id }
+        )
+
+        if is_follower:
+            # Si el user_id está en la lista
+            res = self.db.wishlists.update_one(
+                { "_id": wishlist_id },
+                {
+                    "$pull": { "followers": user_id },   # Elimina el ID del usuario de la lista de followers
+                    "$inc": { "num_followers": -1 }      # Decrementa el num_followers en 1
+                }
+            )
+
+            if res.modified_count > 0:
+                return "Follow removido exitosamente."
+            else:
+                return "No se pudo actualizar la wishlist."
+        else:
+            return "El usuario no sigue la wishlist o la wishlist ingresada no existe."
+    
+    
+    # marcar destinos como objetivos propios
+    def add_destiny_to_wishlist(self, wishlist: WishlistDestiny):
+
+        res = self.db.wishlists.update_one(
+            { "_id": ObjectId(wishlist.wishlist_id), "user_id": wishlist.user_id},
+            { "$addToSet": { "destinies": wishlist.destiny_id } }
+        )
+
+        if res.modified_count > 0:
+            return "Destino agregado a la wishlist con éxito." 
+        else:
+            return "La wishlist ya contiene el destino o no se encontró la wishlist."
+    
+
+    # Eliminar destinos de la wishlist
+    def remove_destiny_from_wishlist(self, wishlist: WishlistDestiny):
+        res = self.db.wishlists.update_one(
+            { "_id": ObjectId(wishlist.wishlist_id), "user_id": wishlist.user_id },
+            { "$pull": { "destinies": wishlist.destiny_id } }  
+        )
+
+        if res.modified_count > 0:
+            return "Destino eliminado de la wishlist con éxito."
+        else:
+            return "No se encontró el destino en la wishlist o no se encontró la wishlist."
 
 """
 class DatabaseMongo:

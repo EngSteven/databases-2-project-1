@@ -1,23 +1,36 @@
 from fastapi import APIRouter, Depends
 from models.schemas import TravelRegister
 from postgresql_data import Database
-from auth import verify_token, oauth2_scheme  
+from mongo_data import DatabaseMongo  
+from postgresql_data import Database  
+
+
+#from auth import verify_token, oauth2_scheme  
 
 router = APIRouter()
-db = Database()
+db_mongo = DatabaseMongo()
+db_postgres = Database()
 
-@router.post("/travel")
-async def register_travel(travel: TravelRegister, token: str = Depends(oauth2_scheme)):
+@router.get("/travels")
+async def get_travels():
+    res = db_mongo.get_travels()
+    print("All travels: ", res)
+    return {"All travels": res}
+
+@router.post("/travels/travel")
+async def register_travel(travel: TravelRegister):
     # Verificar si el token es válido y el usuario está autenticado
-    username = verify_token(token)
+    #username = verify_token(token)
 
-    # Si el token es válido, proceder con el registro del viaje
-    travel_data = TravelRegister(
-        user_id=travel.user_id,
-        title=travel.title,
-        description=travel.description,
-        ini_date=travel.ini_date,
-        end_date=travel.end_date
-    )
-    res = db.register_travel(travel_data)
-    return res
+    # verificar si el id del usuario ingresado existe en la base de datos 
+    if db_postgres.check_user_exists(travel.user_id):
+        travel_data = TravelRegister(
+            user_id = travel.user_id,
+            trip_name = travel.trip_name,
+            description = travel.description,
+            places_visited = travel.places_visited,
+        )
+        res = db_mongo.register_travel(travel_data)
+        return {"Travel": res}
+    
+    return {"Error": "Usuario ingresado no existe"}

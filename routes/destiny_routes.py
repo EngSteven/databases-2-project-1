@@ -1,26 +1,38 @@
-from fastapi import APIRouter
-from models.schemas import DestinyRegister, DestinyTravelRegister
+from fastapi import APIRouter, Depends
+from models.schemas import *
 from postgresql_data import Database
+from mongo_data import DatabaseMongo  
+from postgresql_data import Database  
+
+
+#from auth import verify_token, oauth2_scheme  
 
 router = APIRouter()
-db = Database()
+db_mongo = DatabaseMongo()
+db_postgres = Database()
 
-@router.post("/destiny")
+@router.get("/destinies")
+async def get_destinies():
+    res = db_mongo.get_destinies()
+    print("All destinies: ", res)
+    return {"All destinies": res}
+
+@router.post("/destinies/destiny")
 async def register_destiny(destiny: DestinyRegister):
-    destiny_data = DestinyRegister(
-        name=destiny.name,
-        description=destiny.description,
-        location=destiny.location,
-        url_image=destiny.url_image
-    )
-    res = db.register_destiny(destiny_data)
-    return res
+    # Verificar si el token es válido y el usuario está autenticado
+    #username = verify_token(token)
 
-@router.post("/destiny/travel")
-async def register_destiny_travel(destiny_travel: DestinyTravelRegister):
-    destiny_travel_data = DestinyTravelRegister(
-        travel_id=destiny_travel.travel_id,
-        destiny_id=destiny_travel.destiny_id
-    )
-    res = db.register_destiny_travel(destiny_travel_data)
-    return res
+    # verificar si el id del usuarios ingresado existe en la base de datos 
+    if db_postgres.check_user_exists(destiny.user_id):
+        destiny_data = DestinyRegister(
+            user_id = destiny.user_id,
+            destiny_name = destiny.destiny_name,
+            description = destiny.description,
+            country = destiny.country,
+            city = destiny.city,
+            images = destiny.images 
+        )
+        res = db_mongo.register_destiny(destiny_data)
+        return {"Destiny": res}
+    
+    return {"Error": "Usuario ingresado no existe"}

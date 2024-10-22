@@ -3,6 +3,9 @@ var dbName = 'db_mongo';
 var collectionName = 'posts';
 var collectionName2 = 'comentarios';
 var collectionName3 = 'reacciones';
+var collectionName4 = 'destinies';        // lugares destino que pueden estar asociados a un viaje
+var collectionName5 = 'wishlists';       // lista de viajes deseados por el usuario
+var collectionName5 = 'travels';          // viajes realizados por el usuario usuario con destinos asociados
 
 // crea una conexión a la base de datos 'admin' para realizar operaciones de administración
 var adminDb = db.getSiblingDB('admin');
@@ -20,6 +23,8 @@ var dbMongo = db.getSiblingDB(dbName);
 dbMongo.createCollection(collectionName);
 dbMongo.createCollection(collectionName2);
 dbMongo.createCollection(collectionName3);
+dbMongo.createCollection(collectionName4);
+dbMongo.createCollection(collectionName5);
 
 
 dbMongo[collectionName].insertMany([

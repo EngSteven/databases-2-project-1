@@ -42,8 +42,63 @@ class DatabaseMongo:
 
         res = self.db.posts.insert_one(post_data)
         post_data['_id'] = str(res.inserted_id)     # convertir el ObjectId a cadena
-    
         return post_data
+
+
+    def get_travels(self):
+        res = list(self.db.travels.find())
+        return self.serialize_object_ids(res)
+
+    def register_travel(self, travel: TravelRegister):
+        travel_data = {
+            'user_id': travel.user_id,
+            'trip_name': travel.trip_name,
+            'description': travel.description,
+            'places_visited': travel.places_visited,
+            'likes': 0
+        }
+
+        res = self.db.travels.insert_one(travel_data)
+        travel_data['_id'] = str(res.inserted_id)     # convertir el ObjectId a cadena
+        return travel_data
+    
+
+
+    def get_destinies(self):
+        res = list(self.db.destinies.find())
+        return self.serialize_object_ids(res)
+
+    def register_destiny(self, destiny: DestinyRegister):
+        destiny_data = {
+            'user_id': destiny.user_id,
+            'destiny_name' : destiny.destiny_name,
+            'description' : destiny.description,
+            'country' : destiny.country,
+            'city' : destiny.city,
+            'images': destiny.images,
+            'likes': 0
+        }
+
+        res = self.db.destinies.insert_one(destiny_data)
+        destiny_data['_id'] = str(res.inserted_id)     # convertir el ObjectId a cadena
+        return destiny_data
+    
+
+    def get_wishlists(self):
+        res = list(self.db.wishlists.find())
+        return self.serialize_object_ids(res)
+
+    def register_wishlist(self, wishlist: WishlistRegister):
+        wishlist_data = {
+            'user_id': wishlist.user_id,
+            'list_name' : wishlist.list_name,
+            'destinies' : wishlist.destinies,
+            'followers' : []
+        }
+
+        res = self.db.wishlists.insert_one(wishlist_data)
+        wishlist_data['_id'] = str(res.inserted_id)     # convertir el ObjectId a cadena
+        return wishlist_data
 
 
 """

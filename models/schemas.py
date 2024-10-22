@@ -35,20 +35,23 @@ class Login(BaseModel):
 
 class TravelRegister(BaseModel):
     user_id: int
-    title: str
+    trip_name: str
     description: str
-    ini_date: date
-    end_date: date 
+    places_visited: list
 
 class DestinyRegister(BaseModel):
-    name: str
+    user_id: int
+    destiny_name: str
     description: str
-    location: str
-    url_image: str
+    country: str 
+    city: str 
+    images: list 
 
-class DestinyTravelRegister(BaseModel):
-    travel_id: int
-    destiny_id: int
+
+class WishlistRegister(BaseModel):
+    user_id: int
+    list_name: str
+    destinies: list 
 
 class Reaccion(Enum):
     me_gusta = "me gusta"

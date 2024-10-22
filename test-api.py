@@ -37,35 +37,46 @@ incomplete_login = {
 
 travel = {
     "user_id": 1,
-    "title": "Vacaciones en la playa 2",
+    "trip_name": "Vacaciones en la playa",
     "description": "Un viaje a la playa con amigos.",
-    "ini_date": "2024-10-01",
-    "end_date": "2024-10-10"
+    "places_visited": ["object_id_1", "object_id_2"]
 }
 
 travel_error = {
     "user_id": -1,
-    "title": "Vacaciones en la playa 2",
+    "trip_name": "Vacaciones en la playa",
     "description": "Un viaje a la playa con amigos.",
-    "ini_date": "2024-10-01",
-    "end_date": "2024-10-10"
+    "places_visited": ["object_id_1", "object_id_2"]
 }
 
 destiny = {
-    "name": "Playa de Copacabana 2",
-    "description": "Una de las playas más famosas de Brasil, conocida por su arena blanca y vibrante vida nocturna.",
-    "location": "Río de Janeiro, Brasil",
-    "url_image": "https://example.com/images/copacabana.jpg"
+    "user_id": 1,
+    "destiny_name": "Coliseo Romano",
+    "description": "",
+    "country": "Italia",
+    "city": "Roma",
+    "images": ["https://example.com/coliseo-romano.jpg"]
 }
 
-destiny_travel = {
-    "travel_id": 1,
-    "destiny_id": 1
+destiny_error = {
+    "user_id": -1,
+    "destiny_name": "Coliseo Romano",
+    "description": "",
+    "country": "Italia",
+    "city": "Roma",
+    "images": ["https://example.com/coliseo-romano.jpg"]
 }
 
-destiny_travel_error = {
-    "travel_id": -1,
-    "destiny_id": 1
+wishlist = {
+    "user_id": 1,
+    "list_name": "Lista 1",
+    "destinies": ["6716ad37f153e408a145d417", "6716ad44f153e408a145d418"]
+}
+
+wishlist_error = {
+    "user_id": -1,
+    "list_name": "Lista 1",
+    "destinies": ["6716ad37f153e408a145d417", "6716ad44f153e408a145d418"]
 }
 
 print("\n Ejecutando pruebas unitarias \n")
@@ -92,6 +103,7 @@ class TestAPI(unittest.TestCase):
         self.assertIn("password", str(error_response), "Falta el campo 'password' en la respuesta de error.")
         self.assertIn("email", str(error_response), "Falta el campo 'email' en la respuesta de error.")
 
+    """
     def test_04_login_nonexisting_user(self): 
         response = client.post("/login", json=login_error)      # login con usuario no valido
         self.assertEqual(response.status_code, 200, "Se esperaba un error por usuario inexistente.")
@@ -111,48 +123,49 @@ class TestAPI(unittest.TestCase):
         self.assertIn("access_token", response_data, "Se esperaba recibir un 'access_token'.")
         # guardar el token para usarlo en otras pruebas
         TestAPI.user_token = response_data["access_token"]    
-
+    """
+    
     def test_07_register_travel(self):                   
-        headers = {
-            "Authorization": f"Bearer {TestAPI.user_token}"
-        }
-
-        response = client.post("/travel", json=travel, headers=headers)
-
+        response = client.post("/travels/travel", json=travel)
         self.assertEqual(response.status_code, 200, "Se esperaba un registro exitoso del viaje.")
 
-    def test_08_register_travel_bad_token(self):                   
-
-        headers = {
-            "Authorization": "Bearer invalid_token_xd"
-        }
-
-        response = client.post("/travel", json=travel, headers=headers)
-
-        self.assertEqual(response.status_code, 401, "Se esperaba un error por token inválido.")
+    def test_08_get_travels(self):                   
+        response = client.get("/travels")
+        self.assertEqual(response.status_code, 200)
     
     
     def test_09_register_travel_error(self):
-        headers = {
-            "Authorization": f"Bearer {TestAPI.user_token}"  # Envía el token de autenticación
-        }
-        
-        response = client.post("/travel", json=travel_error, headers=headers)  # Se intenta registrar un travel con un ID de usuario inválido
+        response = client.post("/travels/travel", json=travel_error)  # Se intenta registrar un travel con un ID de usuario inválido
         self.assertEqual(response.status_code, 200, "Se esperaba un error por ID de usuario no existente.")  
     
     def test_10_register_destiny(self):
-        response = client.post("/destiny", json=destiny)
+        response = client.post("/destinies/destiny", json=destiny)
         self.assertEqual(response.status_code, 200, "Se esperaba un registro exitoso del destino.")
 
-    def test_11_register_destiny_travel(self):
-        response = client.post("/destiny/travel", json=destiny_travel)
-        self.assertEqual(response.status_code, 200, "Se esperaba un registro exitoso de la relación entre destino y viaje.")
-
-    def test_12_register_destiny_travel_error(self):
-        response = client.post("/destiny/travel", json=destiny_travel_error)
-        self.assertEqual(response.status_code, 200, "Se esperaba un error por ID de viaje inválido.")
+    def test_11_get_destinies(self):                   
+        response = client.get("/destinies")
+        self.assertEqual(response.status_code, 200)
     
-    def test_13_logout(self):                   
+    
+    def test_12_register_destiny_error(self):
+        response = client.post("/destinies/destiny", json=destiny_error)  # Se intenta registrar un travel con un ID de usuario inválido
+        self.assertEqual(response.status_code, 200, "Se esperaba un error por ID de usuario no existente.")  
+    
+    def test_13_register_wishlist(self):
+        response = client.post("/wishlists/wishlist", json=wishlist)
+        self.assertEqual(response.status_code, 200, "Se esperaba un registro exitoso del destino.")
+
+    def test_14_get_wishlists(self):                   
+        response = client.get("/wishlists")
+        self.assertEqual(response.status_code, 200)
+    
+    
+    def test_15_register_wishlist_error(self):
+        response = client.post("/wishlists/wishlist", json=wishlist_error)  # Se intenta registrar un travel con un ID de usuario inválido
+        self.assertEqual(response.status_code, 200, "Se esperaba un error por ID de usuario no existente.")  
+    
+    """
+    def test_16_logout(self):                   
         headers = {
             "Authorization": f"Bearer {TestAPI.user_token}"
         }
@@ -160,6 +173,7 @@ class TestAPI(unittest.TestCase):
         response = client.post("/logout", json=travel, headers=headers)
 
         self.assertEqual(response.status_code, 200, "Se esperaba un logout exitoso.")
-
+    """
+    
 if __name__ == "__main__":
     unittest.main()

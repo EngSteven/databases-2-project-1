@@ -214,7 +214,7 @@ class DatabaseMongo:
             return "No se pudo remover la reacción del post."
 
     # Añadir comentarios a los posts
-    def add_comment_to_post(self, post_id, comment: Comentario):
+    def add_comment_to_post(self, post_id, comment: Comment):
         comment_data = comment.dict()
         comment_data['reacciones'] = []
         res = self.db.posts.update_one(

@@ -75,6 +75,13 @@ class Likes(BaseModel):
     user_id: int
     reaccion: Reaccion
 
+class LikesRequest(BaseModel):
+    reaccion: str
+
+class LikesUpdateRequest(BaseModel):
+    reaction_id: int
+    reaccion: str
+
 class Comment(BaseModel):
     coment_id: int
     user_id: int
@@ -94,8 +101,17 @@ class PostRequest(BaseModel):
     text: str
     images: list
 
-class CommentRequest(BaseModel):
+class PostUpdateRequest(BaseModel):
+    post_id: int
     user_id: int
+    text: str
+    images: list
+
+class CommentRequest(BaseModel):
+    coment_text: str
+
+class CommentUpdateRequest(BaseModel):
+    comment_id: int
     coment_text: str
 
     

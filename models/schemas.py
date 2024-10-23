@@ -74,12 +74,14 @@ class Likes(BaseModel):
     react_id: int
     user_id: int
     reaccion: Reaccion
+    active: bool
 
 class Comment(BaseModel):
     coment_id: int
     user_id: int
     coment_text: str
     reacciones: list
+    active: bool
 
 class Post(BaseModel):
     post_id: int
@@ -88,6 +90,7 @@ class Post(BaseModel):
     images: list
     comentarios: list
     reacciones: list
+    active: bool
 
 class PostRequest(BaseModel):
     user_id: int

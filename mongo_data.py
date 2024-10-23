@@ -206,8 +206,8 @@ class DatabaseMongo:
     # Quitar reacciones de los posts 
     def remove_reaction_from_post(self, post_id, react_id):
         res = self.db.posts.update_one(
-            { "_id": ObjectId(post_id) },
-            { "$pull": { "reacciones": { "react_id": react_id } } }
+            { "_id": ObjectId(post_id), "reacciones.react_id": react_id  },
+            { "$set": { "reacciones.$.active": False } }
         )
         if res.modified_count > 0:
             return "Reacción removida del post con éxito."
@@ -230,8 +230,8 @@ class DatabaseMongo:
     # Quitar comentarios de los posts
     def remove_comment_from_post(self, post_id, comment_id):
         res = self.db.posts.update_one(
-            { "_id": ObjectId(post_id) },
-            { "$pull": { "comentarios": { "coment_id": comment_id } } }
+            { "_id": ObjectId(post_id), "comentarios.coment_id": comment_id },
+            { "$set": { "comentarios.$.active": False } }
         )
         if res.modified_count > 0:
             return "Comentario removido del post con éxito."

@@ -48,6 +48,11 @@ class DatabaseMongo:
         post_data['_id'] = str(res.inserted_id)     # convertir el ObjectId a cadena
         return post_data
 
+    def insert_comment(self, comment: CommentRequest):
+        comment_data = {
+            'user_id' : comment.user_id,
+            'text' : comment.coment_text 
+        }
 
     def get_travels(self):
         res = list(self.db.travels.find())
@@ -86,8 +91,6 @@ class DatabaseMongo:
         res = self.db.destinies.insert_one(destiny_data)
         destiny_data['_id'] = str(res.inserted_id)     # convertir el ObjectId a cadena
         return destiny_data
-    
-
 
 
     def get_wishlists(self):

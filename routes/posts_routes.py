@@ -13,10 +13,10 @@ async def get_user_posts(user_id: int):
     print("User posts: ", res)
     return {"user_posts": res} 
 
-@router.post("/posts/post")
-async def insert_post(post: PostRequest):
+@router.post("/posts/post/{user_id}")
+async def insert_post(user_id: int, post: PostRequest):
     post_data = PostRequest(
-        user_id = post.user_id, 
+        user_id = user_id, 
         text = post.text,
         images = post.images,
     )

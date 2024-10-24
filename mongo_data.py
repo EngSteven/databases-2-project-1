@@ -73,24 +73,90 @@ class DatabaseMongo:
     
 
 
+    """
+    --------------------------------------------------------------------------------------------------------
+    DESTINOS
+    --------------------------------------------------------------------------------------------------------
+    """
+
     def get_destinies(self):
         res = list(self.db.destinies.find())
         return self.serialize_object_ids(res)
+    
+    def get_destiny(self, destiny_id: ObjectId):
+        res = list(self.db.destinies.find({"_id": destiny_id}))
+        return self.serialize_object_ids(res)
+    
+    def get_user_destinies(self, user_id: int):
+        res = list(self.db.destinies.find({"user_id": user_id}))
+        return self.serialize_object_ids(res)
 
-    def register_destiny(self, destiny: DestinyRegister):
+    def register_destiny(self, user_id: int, destiny: DestinyRequest):
         destiny_data = {
-            'user_id': destiny.user_id,
+            'user_id': user_id,
             'destiny_name' : destiny.destiny_name,
             'description' : destiny.description,
             'country' : destiny.country,
             'city' : destiny.city,
             'images': destiny.images,
-            'likes': 0
+            'is_active': True,
+            'reacciones': [],
+            'comentarios': []
         }
 
         res = self.db.destinies.insert_one(destiny_data)
         destiny_data['_id'] = str(res.inserted_id)     # convertir el ObjectId a cadena
         return destiny_data
+    
+    def deactivate_destiny(self, destiny_id: ObjectId):
+        res = self.db.destinies.update_one(
+            { "_id": destiny_id },
+            { "$set": { "is_active": False } }
+        )
+        if res.modified_count > 0:
+            return "Destino desactivado con éxito."
+        else:
+            return "No se pudo desactivar el destino."
+        
+    def activate_destiny(self, destiny_id: ObjectId):
+        res = self.db.destinies.update_one(
+            { "_id": destiny_id },
+            { "$set": { "is_active": True } }
+        )
+        if res.modified_count > 0:
+            return "Destino activado con éxito."
+        else:
+            return "No se pudo activar el destino."
+
+
+    def update_destiny(self, destiny_id, destiny: DestinyRequest):
+        updated_data = {
+            'destiny_name' : destiny.destiny_name,
+            'description' : destiny.description,
+            'country' : destiny.country,
+            'city' : destiny.city,
+            'images': destiny.images
+        }
+
+        # Filtro para identificar el destino que se va a actualizar
+        filter = {'_id': destiny_id}
+        
+        # Actualización parcial utilizando $set para modificar solo los campos proporcionados
+        update = {'$set': updated_data}
+        
+        # Realizar la actualización
+        # result = self.db.destinies.update_one(filter, update)
+        
+        result = self.db.destinies.update_one(
+            { "_id": destiny_id },
+            { "$set": { "destiny_name": destiny.destiny_name } }
+        )
+
+        # Comprobar si se actualizó alguna fila
+        if result.modified_count > 0:
+            return "Destino actualizado"
+        else:
+            return "No se encontró el destino ingresado"  # Indicar que no se encontró o no se modificó el destino
 
 
     def get_wishlists(self):

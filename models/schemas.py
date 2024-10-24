@@ -47,6 +47,14 @@ class DestinyRegister(BaseModel):
     city: str 
     images: list 
 
+class DestinyRequest(BaseModel):
+    destiny_name: str
+    description: str
+    country: str 
+    city: str 
+    images: list 
+
+
 
 class WishlistRegister(BaseModel):
     user_id: int

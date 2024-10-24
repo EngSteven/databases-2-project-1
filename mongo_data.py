@@ -145,12 +145,7 @@ class DatabaseMongo:
         update = {'$set': updated_data}
         
         # Realizar la actualización
-        # result = self.db.destinies.update_one(filter, update)
-        
-        result = self.db.destinies.update_one(
-            { "_id": destiny_id },
-            { "$set": { "destiny_name": destiny.destiny_name } }
-        )
+        result = self.db.destinies.update_one(filter, update)
 
         # Comprobar si se actualizó alguna fila
         if result.modified_count > 0:

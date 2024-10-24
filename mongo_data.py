@@ -228,7 +228,8 @@ class DatabaseMongo:
                 return "No se pudo actualizar la wishlist."
         else:
             return "El usuario no sigue la wishlist o la wishlist ingresada no existe."
-    
+        
+
     
     # marcar destinos como objetivos propios
     def add_destiny_to_wishlist(self, wishlist: WishlistDestiny):
@@ -255,6 +256,12 @@ class DatabaseMongo:
             return "Destino eliminado de la wishlist con éxito."
         else:
             return "No se encontró el destino en la wishlist o no se encontró la wishlist."
+
+    """
+    --------------------------------------------------------------------------------------------------------
+    POSTS
+    --------------------------------------------------------------------------------------------------------
+    """
 
     # Añadir reacciones a los posts
     def add_reaction_to_post(self, post_id, react_id):

@@ -79,7 +79,7 @@ class Reaccion(Enum):
     me_enoja = "me enoja"
 
 class Likes(BaseModel):
-    react_id: int
+    react_id: str
     user_id: int
     reaccion: Reaccion
     active: bool
@@ -88,18 +88,18 @@ class LikesRequest(BaseModel):
     reaccion: str
 
 class LikesUpdateRequest(BaseModel):
-    reaction_id: int
+    reaction_id: str
     reaccion: str
 
 class Comment(BaseModel):
-    coment_id: int
+    comment_id: str
     user_id: int
     coment_text: str
     reacciones: list
     active: bool
 
 class Post(BaseModel):
-    post_id: int
+    post_id: str
     user_id: int
     text: str
     images: list
@@ -112,8 +112,7 @@ class PostRequest(BaseModel):
     images: list
 
 class PostUpdateRequest(BaseModel):
-    post_id: int
-    user_id: int
+    post_id: str
     text: str
     images: list
 
@@ -121,7 +120,7 @@ class CommentRequest(BaseModel):
     coment_text: str
 
 class CommentUpdateRequest(BaseModel):
-    comment_id: int
+    comment_id: str
     coment_text: str
 
     

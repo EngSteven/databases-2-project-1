@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends
 from models.schemas import *
 from mongo_data import DatabaseMongo  
 from auth import * 
-#from bson import ObjectId
+from bson import ObjectId
 
 router = APIRouter()
 db = DatabaseMongo()
@@ -20,59 +20,58 @@ async def insert_post(user_id: int, post: PostRequest): #Sirve
 
 @router.get("/{user_id}/posts")
 async def get_posts(user_id: int):
-    res = db.get_user_posts(user_id)    #No sirve aún
+    res = db.get_user_posts(user_id)    
     print("Posts:", res)
     return {"Posts recientes": res}
 
 @router.get("/posts")
 async def get_posts():
-    res = db.get_all_posts()    #No sirve aún
+    res = db.get_all_posts()    
     print("Posts:", res)
     return {"Posts recientes": res}
 
 @router.get("/{user_id}/posts/{post_id}")
-async def get_post(user_id, post_id):
-    res = db.get_user_post(user_id, post_id) #Falta en mongo_data
+async def get_post(post_id: str):
+    res = db.get_user_post(ObjectId(post_id)) #Falta en mongo_data
     print("Post:", res)
     return {"Post": res}
 
 @router.post("/{user_id}/posts/{post_id}/comment")
-async def post_comment(user_id, post_id, comment: CommentRequest):
+async def post_comment(user_id: int, post_id: str, comment: CommentRequest):
     post_data = CommentRequest(
         text = comment.coment_text
     )
-    res = db.insert_comment(user_id, post_id, post_data)
+    res = db.insert_comment(user_id, ObjectId(post_id), post_data)
     print("Comentario: ", res)
     return{"Comentario" : res}
 
 
 #Este no sé si funciona
 @router.post("/{user_id}/posts/{post_id}/react")
-async def post_reaction(user_id, post_id, reaccion: LikesRequest):
+async def post_reaction(user_id: int, post_id: str, reaccion: LikesRequest):
     post_data = LikesRequest(
         reaction = reaccion.reaccion
     )
-    res = db.insert_reaction(user_id, post_id, post_data)
+    res = db.insert_reaction(user_id, ObjectId(post_id), post_data)
     print("Reaccion: ", res)
     return{"Reaccion" : res}
 
 @router.get("/{user_id}/posts/{post_id}/{comment_id}")
-async def get_comment(user_id, post_id, comment_id):
-    res = db.get_user_comment(user_id, post_id, comment_id)
+async def get_comment(comment_id: str):
+    res = db.get_user_comment(ObjectId(comment_id))
     print("Comentario:", res)
     return {"Comentario": res}
 
 @router.get("/{user_id}/posts/{post_id}/{reaction_id}")
-async def get_reaction(user_id, post_id, reaction_id):
-    res = db.get_user_reaction(user_id, post_id, reaction_id)
+async def get_reaction(reaction_id: str):
+    res = db.get_user_reaction(ObjectId(reaction_id))
     print("Reaccion:", res)
     return {"Reaccion": res}
 
 @router.put("/{user_id}/posts/{post_id}/update")
-async def update_post(user_id, post_id, post: PostUpdateRequest):
+async def update_post(post_id: str, post: PostUpdateRequest):
     post_data = PostUpdateRequest(
         post_id = post_id,
-        user_id = user_id, 
         text = post.text,
         images = post.images,
     )
@@ -81,7 +80,7 @@ async def update_post(user_id, post_id, post: PostUpdateRequest):
     return {"Post actualizado": res}
 
 @router.put("/{user_id}/posts/{post_id}/{comment_id}/update")
-async def update_comment(user_id, post_id, comment_id, comment: CommentUpdateRequest):
+async def update_comment(comment_id: str, comment: CommentUpdateRequest):
     post_data = CommentUpdateRequest(
         comment_id = comment_id,
         coment_text = comment.coment_text
@@ -91,7 +90,7 @@ async def update_comment(user_id, post_id, comment_id, comment: CommentUpdateReq
     return {"Post actualizado": res}
 
 @router.put("/{user_id}/posts/{post_id}/{reaction_id}/update")
-async def update_reaction(user_id, post_id, reaction_id, reaccion: LikesUpdateRequest):
+async def update_reaction(reaction_id: str, reaccion: LikesUpdateRequest):
     post_data = LikesUpdateRequest(
         reaction_id = reaction_id, 
         reaccion = reaccion.reaccion
@@ -101,18 +100,18 @@ async def update_reaction(user_id, post_id, reaction_id, reaccion: LikesUpdateRe
     return {"Post actualizado": res}
 
 @router.delete("/{user_id}/posts/{post_id}/delete")
-async def delete_post(user_id, post_id):
-    db.delete_user_posts(user_id)
+async def delete_post(post_id: str):
+    db.delete_user_posts(ObjectId(post_id))
     return {"Posts borrado exitosamente"}
 
 @router.delete("/{user_id}/posts/{post_id}/{comment_id}/delete")
-async def delete_comment(user_id, post_id, comment_id): 
-    db.delete__user_comment(comment_id)
+async def delete_comment(comment_id: str): 
+    db.delete__user_comment(ObjectId(comment_id))
     return {"Comentario eliminado exitosamente"}
 
 @router.delete("/{user_id}/posts/{post_id}/{reaction_id}/delete")
-async def delete_reaction(user_id, post_id, reaction_id):
-    db.delete__user_reaction(reaction_id)
+async def delete_reaction(reaction_id: str):
+    db.delete__user_reaction(ObjectId(reaction_id))
     return {"Reaccion eliminada correctamente"}
 
 """

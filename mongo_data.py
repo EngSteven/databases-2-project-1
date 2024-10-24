@@ -34,6 +34,10 @@ class DatabaseMongo:
     def get_user_posts(self, user_id):
         res = list(self.db.posts.find({"usuario_id": user_id}))
         return self.serialize_object_ids(res)
+    
+    def get_all_posts(self):
+        res = list(self.db.posts.find())
+        return self.serialize_object_ids(res)
 
     def insert_post(self, user_id, post: PostRequest):
         post_data = {

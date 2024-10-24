@@ -19,8 +19,14 @@ async def insert_post(user_id: int, post: PostRequest): #Sirve
     return {"Post ingresado": res}
 
 @router.get("/{user_id}/posts")
-async def get_posts(user_id):
+async def get_posts(user_id: int):
     res = db.get_user_posts(user_id)    #No sirve aún
+    print("Posts:", res)
+    return {"Posts recientes": res}
+
+@router.get("/posts")
+async def get_posts():
+    res = db.get_all_posts()    #No sirve aún
     print("Posts:", res)
     return {"Posts recientes": res}
 
@@ -62,7 +68,7 @@ async def get_reaction(user_id, post_id, reaction_id):
     print("Reaccion:", res)
     return {"Reaccion": res}
 
-@router.post("/{user_id}/posts/{post_id}/update")
+@router.put("/{user_id}/posts/{post_id}/update")
 async def update_post(user_id, post_id, post: PostUpdateRequest):
     post_data = PostUpdateRequest(
         post_id = post_id,
@@ -74,7 +80,7 @@ async def update_post(user_id, post_id, post: PostUpdateRequest):
     print("Post: ", res)
     return {"Post actualizado": res}
 
-@router.post("/{user_id}/posts/{post_id}/{comment_id}/update")
+@router.put("/{user_id}/posts/{post_id}/{comment_id}/update")
 async def update_comment(user_id, post_id, comment_id, comment: CommentUpdateRequest):
     post_data = CommentUpdateRequest(
         comment_id = comment_id,
@@ -84,7 +90,7 @@ async def update_comment(user_id, post_id, comment_id, comment: CommentUpdateReq
     print("Post: ", res)
     return {"Post actualizado": res}
 
-@router.post("/{user_id}/posts/{post_id}/{reaction_id}/update")
+@router.put("/{user_id}/posts/{post_id}/{reaction_id}/update")
 async def update_reaction(user_id, post_id, reaction_id, reaccion: LikesUpdateRequest):
     post_data = LikesUpdateRequest(
         reaction_id = reaction_id, 

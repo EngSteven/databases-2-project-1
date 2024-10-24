@@ -33,6 +33,110 @@ END;
 $$;
 
 
+CREATE OR REPLACE FUNCTION public.get_user(IN _id INTEGER)
+RETURNS TABLE(id INTEGER, username VARCHAR, email VARCHAR, is_active BOOLEAN)
+LANGUAGE 'plpgsql'
+AS $$
+BEGIN
+    RETURN QUERY 
+    SELECT users.id, users.username, users.email, users.is_active 
+    FROM users 
+    WHERE users.id = _id AND users.is_active = TRUE;
+END;
+$$;
+
+CREATE OR REPLACE FUNCTION public.get_all_users()
+RETURNS TABLE(id INTEGER, username VARCHAR, email VARCHAR, is_active BOOLEAN)
+LANGUAGE 'plpgsql'
+AS $$
+BEGIN
+    RETURN QUERY 
+    SELECT users.id, users.username, users.email, users.is_active 
+    FROM users 
+    WHERE users.is_active = TRUE;
+END;
+$$;
+
+CREATE OR REPLACE FUNCTION public.update_username(IN _id INTEGER, IN _username VARCHAR)
+RETURNS BOOLEAN
+LANGUAGE 'plpgsql'
+AS $$
+DECLARE
+    username_exists BOOLEAN;
+BEGIN
+    -- Verifica si el nombre de usuario ya está tomado por otro usuario o si esta ingresando el mismo username
+    SELECT EXISTS(SELECT 1 FROM users WHERE username = _username AND id != _id) INTO username_exists;
+
+    IF username_exists THEN
+        RETURN FALSE; -- Nombre de usuario ya existe para otro usuario
+    ELSE
+        UPDATE users
+        SET username = _username
+        WHERE id = _id AND is_active = TRUE;
+
+        IF FOUND THEN
+            RETURN TRUE; -- Actualización exitosa
+        ELSE
+            RETURN FALSE; -- Usuario no encontrado o desactivado
+        END IF;
+    END IF;
+END;
+$$;
+
+
+CREATE OR REPLACE FUNCTION public.update_password(IN _id INTEGER, IN _password VARCHAR)
+RETURNS BOOLEAN
+LANGUAGE 'plpgsql'
+AS $$
+BEGIN
+    UPDATE users
+    SET password = _password
+    WHERE id = _id AND is_active = TRUE;
+
+    IF FOUND THEN
+        RETURN TRUE; -- Contraseña actualizada exitosamente
+    ELSE
+        RETURN FALSE; -- Usuario no encontrado o desactivado
+    END IF;
+END;
+$$;
+
+
+CREATE OR REPLACE FUNCTION public.deactivate_user(IN _id INTEGER)
+RETURNS BOOLEAN
+LANGUAGE 'plpgsql'
+AS $$
+BEGIN
+    UPDATE users
+    SET is_active = FALSE
+    WHERE id = _id AND is_active = TRUE;
+    
+    IF FOUND THEN
+        RETURN TRUE; -- Usuario desactivado exitosamente
+    ELSE
+        RETURN FALSE; -- No se encontró el usuario o ya estaba desactivado
+    END IF;
+END;
+$$;
+
+CREATE OR REPLACE FUNCTION public.reactivate_user(IN _id INTEGER)
+RETURNS BOOLEAN
+LANGUAGE 'plpgsql'
+AS $$
+BEGIN
+    UPDATE users
+    SET is_active = TRUE
+    WHERE id = _id AND is_active = FALSE;
+
+    IF FOUND THEN
+        RETURN TRUE; -- Usuario reactivado exitosamente
+    ELSE
+        RETURN FALSE; -- Usuario no encontrado o ya estaba activo
+    END IF;
+END;
+$$;
+
+
 
 CREATE OR REPLACE FUNCTION public.login(IN _username VARCHAR, IN _password VARCHAR)
 RETURNS INTEGER
@@ -51,107 +155,5 @@ BEGIN
 	ELSE
         RETURN 0; 		-- Los datos del usuario son incorrectos
 	END IF;
-END;
-$$;
-
-
-
-
-
-
-
--------------------------------------- FUNCIONES PARA TRAVEL ------------------------------------------
-
-
-CREATE OR REPLACE FUNCTION public.register_travel(
-    IN _user_id INT,
-    IN _title VARCHAR,
-    IN _description TEXT,
-    IN _ini_date DATE,
-    IN _end_date DATE
-)
-
-RETURNS INTEGER
-LANGUAGE 'plpgsql'
-AS $$
-
-DECLARE 
-    user_exists BOOLEAN;
-	result_id INTEGER;
-BEGIN
-	-- Verifica si el usuario existe
-    SELECT EXISTS(SELECT 1 FROM users WHERE id = _user_id) INTO user_exists;
-
-    -- Solo registra si el usuario existe
-    IF user_exists THEN
-		INSERT INTO travels (user_id, title, description, ini_date, end_date)
-    	VALUES (_user_id, _title, _description, _ini_date, _end_date)
-    	RETURNING id INTO result_id; -- Captura el id del travel registrado
-        RETURN result_id; -- Retorna el id del travel registrado
-	ELSE
-        RETURN -1; -- Usuario asociado no existe
-	END IF;
-END;
-$$;
-
-
-
-
------------------------------------ FUNCIONES PARA Destinies -------------------------------------------
-
-
-CREATE OR REPLACE FUNCTION public.register_destiny(
-    IN _name VARCHAR,
-    IN _description TEXT,
-    IN _location VARCHAR,
-    IN _url_image VARCHAR
-)
-
-RETURNS INTEGER
-LANGUAGE 'plpgsql'
-AS $$
-
-DECLARE 
-	result_id INTEGER;
-BEGIN
-    INSERT INTO destinies (name, description, location, url_image)
-    VALUES (_name, _description, _location, _url_image)
-    RETURNING id INTO result_id; -- Captura el id del travel registrado
-    RETURN result_id; -- Retorna el id del travel registrado
-END;
-$$;
-
-
-
----------------------------------------- FUNCIONES PARA viajes destino ---------------------------------
-
-
-CREATE OR REPLACE FUNCTION public.register_destiny_travel(
-    IN _travel_id INT,
-    IN _destiny_id INT
-)
-RETURNS INTEGER  
-LANGUAGE 'plpgsql'
-AS $$
-DECLARE 
-    travel_exists BOOLEAN;
-	destiny_exists BOOLEAN;
-    result_id INTEGER;
-BEGIN
-    -- Verifica si el travel existe
-    SELECT EXISTS(SELECT 1 FROM travels WHERE id = _travel_id) INTO travel_exists;
-
-    -- Verifica si el destiny existe
-    SELECT EXISTS(SELECT 1 FROM destinies WHERE id = _destiny_id) INTO destiny_exists;
-
-    -- Solo registra si el usuario existe
-    IF travel_exists AND destiny_exists THEN
-        INSERT INTO destiny_travels (travel_id, destiny_id)
-        VALUES (_travel_id, _destiny_id)
-        RETURNING id INTO result_id; -- Captura el id del travel registrado
-        RETURN result_id; -- Retorna el id del travel registrado
-    ELSE
-        RETURN -1;  
-    END IF;
 END;
 $$;

@@ -6,7 +6,7 @@ from auth import *
 router = APIRouter()
 db = Database()
 
-@router.post("/user")
+@router.post("/users/user")
 async def register_user(user: UserRegister):
     user_data = UserRegister(
         username=user.username,
@@ -15,6 +15,38 @@ async def register_user(user: UserRegister):
     )
     res = db.register_user(user_data)
     return res
+
+@router.get("/users")
+async def get_all_users():
+    user = db.get_all_users()
+    return user
+
+@router.get("/users/{user_id}")
+async def get_user(user_id: int):
+    user = db.get_user(user_id)
+    return user
+
+
+@router.put("/users/{user_id}/username")
+async def update_username(user_id: int, request: UsernameRequest):
+    res = db.update_username(user_id, request.username)
+    return res
+
+@router.put("/users/{user_id}/password")
+async def update_password(user_id: int, request: PasswordRequest):
+    res = db.update_password(user_id, request.password)
+    return res
+
+@router.delete("/users/{user_id}")
+async def deactivate_user(user_id: int):
+    res = db.deactivate_user(user_id)
+    return res
+
+@router.put("/users/{user_id}/reactivate")
+async def reactivate_user(user_id: int):
+    res = db.reactivate_user(user_id)
+    return res
+
 
 @router.post("/login")
 async def login(user: Login):

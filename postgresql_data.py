@@ -55,7 +55,129 @@ class Database:
         except psycopg2.Error as e:
             self.connection.rollback()
             raise HTTPException(status_code=500, detail=f"Error al registrar el usuario: {e.pgerror}")
+
+    def get_user(self, user_id: int):
+        try:
+            cur = self.connection.cursor()
+
+            # Llamada al procedimiento almacenado para obtener el usuario
+            cur.execute('SELECT get_user(%s)', (user_id,))
+                    
+            # Obtener los datos del usuario
+            user = cur.fetchone()
+            cur.close()
+
+            if user:
+                return user
+            else:
+                return "Usuario no encontrado o inactivo"  # Usuario no encontrado o desactivado
+
+        except psycopg2.Error as e:
+            self.connection.rollback()
+            raise HTTPException(status_code=500, detail=f"Error al obtener el usuario: {e.pgerror}")        
+
+    def get_all_users(self):
+        try:
+            cur = self.connection.cursor()
+
+            # Llamada al procedimiento almacenado para obtener el usuario
+            cur.execute('SELECT get_all_users()')
+
+            # Obtener todos los resultados
+            users = cur.fetchall()
+            cur.close()
+
+            # Si no hay usuarios, retornar una lista vacía
+            if users:
+                return users
+            else:
+                return "No se han encontrado usuarios activos"  # no hay usuarios activos         
+            
+        except psycopg2.Error as e:
+            self.connection.rollback()
+            raise HTTPException(status_code=500, detail=f"Error al obtener los usuarios: {e.pgerror}")        
+
+
+    def deactivate_user(self, user_id: int):
+        try:
+            cur = self.connection.cursor()
+
+            cur.execute('SELECT deactivate_user(%s)', (user_id,))
+
+            user_exists = cur.fetchone()[0]
+
+            cur.close()
+
+            if user_exists:
+                return "Usuario desactivado"
+            else:
+                return "No se encontró el usuario"
+
+        except psycopg2.Error as e:
+            self.connection.rollback()
+            raise HTTPException(status_code=500, detail=f"Error desactivar el usuario: {e.pgerror}")
         
+    def reactivate_user(self, user_id: int):
+        try:
+            cur = self.connection.cursor()
+
+            cur.execute('SELECT reactivate_user(%s)', (user_id,))
+
+            user_exists = cur.fetchone()[0]
+
+            cur.close()
+
+            if user_exists:
+                return "Usuario activado"
+            else:
+                return "No se encontró el usuario"
+
+        except psycopg2.Error as e:
+            self.connection.rollback()
+            raise HTTPException(status_code=500, detail=f"Error activar el usuario: {e.pgerror}")
+        
+    def update_username(self, user_id: int, username: str):
+        try:
+            cur = self.connection.cursor()
+
+            cur.execute('SELECT update_username(%s, %s)', (user_id, username))
+
+            user_exists = cur.fetchone()[0]
+
+            cur.close()
+
+            if user_exists:
+                return "Usuario actualizado"
+            else:
+                return "No se encontró el usuario o el nombre de usuario ya existe"
+
+        except psycopg2.Error as e:
+            self.connection.rollback()
+            raise HTTPException(status_code=500, detail=f"Error actualizar el usuario: {e.pgerror}")
+        
+    
+    def update_password(self, user_id: int, password: str):
+        try:
+            cur = self.connection.cursor()
+
+            cur.execute('SELECT update_password(%s, %s)', (user_id, password))
+
+            user_exists = cur.fetchone()[0]
+
+            cur.close()
+
+            if user_exists:
+                return "Usuario actualizado"
+            else:
+                return "No se encontró el usuario o la contraseña ya existe"
+
+        except psycopg2.Error as e:
+            self.connection.rollback()
+            raise HTTPException(status_code=500, detail=f"Error actualizar el usuario: {e.pgerror}")
+
+
+
+
 
     def login(self, login: Login):
         try:

@@ -13,15 +13,15 @@ class UserRegister(BaseModel):
     password: str
     email: str
 
+class UsernameRequest(BaseModel):
+    username: str
+
+class PasswordRequest(BaseModel):
+    password: str
+
 class Token(BaseModel):
     access_token: str
     token_type: str
-
-class UserId(BaseModel):
-    id: int
-
-class UserName(BaseModel):
-    username: str
 
 class User(BaseModel):
     id: int

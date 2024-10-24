@@ -100,7 +100,6 @@ class Post(BaseModel):
     active: bool
 
 class PostRequest(BaseModel):
-    user_id: int
     text: str
     images: list
 

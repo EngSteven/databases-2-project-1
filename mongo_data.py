@@ -35,9 +35,9 @@ class DatabaseMongo:
         res = list(self.db.posts.find({"usuario_id": user_id}))
         return self.serialize_object_ids(res)
 
-    def insert_post(self, post: PostRequest):
+    def insert_post(self, user_id, post: PostRequest):
         post_data = {
-            'usuario_id': post.user_id,
+            'usuario_id': user_id,
             'text': post.text,
             'images': post.images,
             'reacciones': [],

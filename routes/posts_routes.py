@@ -9,25 +9,24 @@ db = DatabaseMongo()
 
 
 @router.post("/{user_id}/posts/post")
-async def insert_post(user_id: int, post: PostRequest):
+async def insert_post(user_id: int, post: PostRequest): #Sirve
     post_data = PostRequest(
-        user_id = user_id, 
         text = post.text,
         images = post.images,
     )
-    res = db.insert_post(post_data)
+    res = db.insert_post(user_id, post_data)
     print("Post: ", res)
     return {"Post ingresado": res}
 
 @router.get("/{user_id}/posts")
 async def get_posts(user_id):
-    res = db.get_user_posts(user_id)    #Sirve
+    res = db.get_user_posts(user_id)    #No sirve aún
     print("Posts:", res)
     return {"Posts recientes": res}
 
 @router.get("/{user_id}/posts/{post_id}")
 async def get_post(user_id, post_id):
-    res = db.get_user_post(user_id, post_id)
+    res = db.get_user_post(user_id, post_id) #Falta en mongo_data
     print("Post:", res)
     return {"Post": res}
 

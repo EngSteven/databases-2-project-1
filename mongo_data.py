@@ -58,23 +58,79 @@ class DatabaseMongo:
             'text' : comment.coment_text 
         }
 
+    """
+    --------------------------------------------------------------------------------------------------------
+    Viajes
+    --------------------------------------------------------------------------------------------------------
+    """
+
     def get_travels(self):
         res = list(self.db.travels.find())
         return self.serialize_object_ids(res)
+    
+    def get_travel(self, travel_id: ObjectId):
+        res = list(self.db.travels.find({"_id": travel_id}))
+        return self.serialize_object_ids(res)
+    
+    def get_user_travels(self, user_id: int):
+        res = list(self.db.travels.find({"user_id": user_id}))
+        return self.serialize_object_ids(res)
 
-    def register_travel(self, travel: TravelRegister):
+    def register_travel(self, user_id: int, travel: TravelRequest):
         travel_data = {
-            'user_id': travel.user_id,
+            'user_id': user_id,
             'trip_name': travel.trip_name,
             'description': travel.description,
             'places_visited': travel.places_visited,
-            'likes': 0
+            'is_active': True,
+            'reacciones': [],
+            'comentarios': []
         }
 
         res = self.db.travels.insert_one(travel_data)
         travel_data['_id'] = str(res.inserted_id)     # convertir el ObjectId a cadena
         return travel_data
     
+
+    def deactivate_travel(self, travel_id: ObjectId):
+        res = self.db.travels.update_one(
+            { "_id": travel_id },
+            { "$set": { "is_active": False } }
+        )
+        if res.modified_count > 0:
+            return "Viaje desactivado con éxito."
+        else:
+            return "No se pudo desactivar el viaje."
+        
+    def activate_travel(self, travel_id: ObjectId):
+        res = self.db.travels.update_one(
+            { "_id": travel_id },
+            { "$set": { "is_active": True } }
+        )
+        if res.modified_count > 0:
+            return "Viaje activado con éxito."
+        else:
+            return "No se pudo activar el viaje."
+
+
+    def update_travel(self, travel_id, travel: TravelRequest):
+        updated_data = {
+            'trip_name': travel.trip_name,
+            'description': travel.description,
+            'places_visited': travel.places_visited,
+        }
+
+        filter = {'_id': travel_id}
+        update = {'$set': updated_data}
+        
+        # Realizar la actualización
+        result = self.db.travels.update_one(filter, update)
+
+        # Comprobar si se actualizó alguna fila
+        if result.modified_count > 0:
+            return "Viaje actualizado"
+        else:
+            return "No se encontró el viaje ingresado"  # Indicar que no se encontró o no se modificó el destino
 
 
     """

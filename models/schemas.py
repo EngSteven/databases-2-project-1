@@ -33,8 +33,7 @@ class Login(BaseModel):
     username: str
     password: str
 
-class TravelRegister(BaseModel):
-    user_id: int
+class TravelRequest(BaseModel):
     trip_name: str
     description: str
     places_visited: list

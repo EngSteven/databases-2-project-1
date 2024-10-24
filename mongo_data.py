@@ -214,13 +214,19 @@ class DatabaseMongo:
             return "No se encontró el destino ingresado"  # Indicar que no se encontró o no se modificó el destino
 
 
+    """
+    --------------------------------------------------------------------------------------------------------
+    Lista de deseos
+    --------------------------------------------------------------------------------------------------------
+    """
+
     def get_wishlists(self):
         res = list(self.db.wishlists.find())
         return self.serialize_object_ids(res)
 
-    def register_wishlist(self, wishlist: WishlistRegister):
+    def register_wishlist(self, user_id: int, wishlist: WishlistRequest):
         wishlist_data = {
-            'user_id': wishlist.user_id,
+            'user_id': user_id,
             'list_name' : wishlist.list_name,
             'destinies' : wishlist.destinies,
             'followers' : [],
@@ -341,6 +347,26 @@ class DatabaseMongo:
             return "Reacción removida del post con éxito."
         else:
             return "No se pudo remover la reacción del post."
+
+    def get_reaction_from_post(self, post_id, react_id):
+        res = self.db.posts.find_one(
+             {"_id": ObjectId(post_id), "reacciones.react_id": react_id}
+             )
+        # Si existe, regresa la reaccion pedida
+        if res and "reacciones" in res:
+            return res["reacciones"][0]
+        else:
+            return None
+        
+    def set_reaction_from_post(self, post_id, react_id, P_reaction):
+        res = self.db.posts.update_one(
+            { "_id": ObjectId(post_id), "reacciones.react_id": react_id  },
+            { "$set": { "reacciones.$.reaccion": P_reaction } }
+        )
+        if res.modified_count > 0:
+            return "Reacción del post modificada con éxito."
+        else:
+            return "No se pudo modificar la reacción del post."
 
     # Añadir comentarios a los posts
     def add_comment_to_post(self, post_id, comment: Comment):

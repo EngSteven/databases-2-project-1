@@ -55,8 +55,7 @@ class DestinyRequest(BaseModel):
 
 
 
-class WishlistRegister(BaseModel):
-    user_id: int
+class WishlistRequest(BaseModel):
     list_name: str
     destinies: list
 
@@ -69,18 +68,10 @@ class WishlistDestiny(BaseModel):
     wishlist_id: str 
     destiny_id: str
 
-class Reaccion(Enum):
-    me_gusta = "me gusta"
-    me_encanta = "me encanta"
-    me_enamora = "me enamora"
-    me_asombra = "me asombra"
-    me_entristece = "me entristece"
-    me_enoja = "me enoja"
-
 class Likes(BaseModel):
     react_id: str
     user_id: int
-    reaccion: Reaccion
+    reaccion: str
     active: bool
 
 class LikesRequest(BaseModel):

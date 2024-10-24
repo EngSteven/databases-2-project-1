@@ -48,7 +48,7 @@ docker compose exec webapp poetry run coverage report
 
 # Endpoints usando Postman
 
-## 1. Registrar usuario
+## Registrar usuario
 Se selecciona un método POST y se ingresa en un body de tipo raw el nombre de usuario, la contraseña, y el email.
 ### Ruta
 ``` bash
@@ -63,7 +63,7 @@ localhost:8000/user
 }
 ```
 
-## 2. Inicio de sesión
+## Inicio de sesión
 Se selecciona un método POST y se ingresa en un body de tipo raw el nombre de usuario y la contraseña
 ### Ruta
 ``` bash
@@ -79,25 +79,133 @@ localhost:8000/login
 
 Si todo sale bien verá un token de autenticación como retorno. Guardelo para poder usarlo en las demás pruebas.
 
-## 3. Travel
+## Registrar un viaje
+Método: POST
 ### Ruta 
 ``` bash
-localhost:8000/travel
-```
-
-Se selecciona un método POST y se ingresa en un body de tipo raw los datos como el siguiente ejemplo
+localhost:8000/travels/travel
+``` 
 ### Body de ejemplo
 ``` bash
 {
-    "user_id": 2,
-    "title": "Vacaciones en la playa",
+    "user_id": 1,
+    "trip_name": "Vacaciones en la playa",
     "description": "Un viaje a la playa con amigos.",
-    "ini_date": "2024-10-01",
-    "end_date": "2024-10-10"
+    "places_visited": ["object_id_1", "object_id_2"]
 }
 ```
 
-Ademas se ingresa en Headers una Key "Autorization" con un Value "Bearer <token autenticacion>"
+## Listar los viajes
+Método: GET
+### Ruta 
+``` bash
+localhost:8000/travels
+``` 
 
+## Registrar un destino
+Método: POST
+### Ruta 
+``` bash
+localhost:8000/destinies/destiny
+``` 
+### Body de ejemplo
+``` bash
+{
+    "user_id": 1,
+    "destiny_name": "Coliseo Romano",
+    "description": "",
+    "country": "Italia",
+    "city": "Roma",
+    "images": ["https://example.com/coliseo-romano.jpg"]
+}
+```
+
+## Listar los destinos
+Método: GET
+### Ruta 
+``` bash
+localhost:8000/destinies
+```
+
+## Registrar una lista de deseos 
+Método: POST
+### Ruta 
+``` bash
+localhost:8000/wishlists/wishlist
+``` 
+### Body de ejemplo
+``` bash
+{
+    "user_id": 1,
+    "list_name": "Lista 1",
+    "destinies": ["6716ad37f153e408a145d417", "6716ad44f153e408a145d418"]
+}
+```
+
+## Listar todas las listas de deseos
+Método: GET
+### Ruta 
+``` bash
+localhost:8000/wishlists
+```
+
+## Realizar un follow a una lista de deseo 
+Método: POST
+### Ruta 
+``` bash
+localhost:8000/wishlists/follow
+``` 
+### Body de ejemplo
+``` bash
+{
+    "user_id": 1,
+    "wishlist_id": "67170c9441c861f1f4124730"
+}
+```
+
+## Quitar un follow a una lista de deseo 
+Método: DELETE
+### Ruta 
+``` bash
+localhost:8000/wishlists/follow
+``` 
+### Body de ejemplo
+``` bash
+{
+    "user_id": 1,
+    "wishlist_id": "67170c9441c861f1f4124730"
+}
+```
+
+## Agregar un destino a una lista de deseos
+Método: POST
+### Ruta 
+``` bash
+localhost:8000/wishlists/destiny
+``` 
+### Body de ejemplo
+``` bash
+{
+    "user_id": 1,
+    "wishlist_id": "67170c9441c861f1f4124730",
+    "destiny_id": "67170c9441c861f1f412472f"
+}
+```
+
+
+## Quitar un destino a una lista de deseos
+Método: DELETE
+### Ruta 
+``` bash
+localhost:8000/wishlists/destiny
+``` 
+### Body de ejemplo
+``` bash
+{
+    "user_id": 1,
+    "wishlist_id": "67170c9441c861f1f4124730",
+    "destiny_id": "67170c9441c861f1f412472f"
+}
+```
 
 

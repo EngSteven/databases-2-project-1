@@ -13,15 +13,15 @@ class UserRegister(BaseModel):
     password: str
     email: str
 
+class UsernameRequest(BaseModel):
+    username: str
+
+class PasswordRequest(BaseModel):
+    password: str
+
 class Token(BaseModel):
     access_token: str
     token_type: str
-
-class UserId(BaseModel):
-    id: int
-
-class UserName(BaseModel):
-    username: str
 
 class User(BaseModel):
     id: int
@@ -74,6 +74,7 @@ class Likes(BaseModel):
     react_id: int
     user_id: int
     reaccion: Reaccion
+    active: bool
 
 class LikesRequest(BaseModel):
     reaccion: str
@@ -87,6 +88,7 @@ class Comment(BaseModel):
     user_id: int
     coment_text: str
     reacciones: list
+    active: bool
 
 class Post(BaseModel):
     post_id: int
@@ -95,6 +97,7 @@ class Post(BaseModel):
     images: list
     comentarios: list
     reacciones: list
+    active: bool
 
 class PostRequest(BaseModel):
     user_id: int

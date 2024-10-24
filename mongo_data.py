@@ -192,21 +192,22 @@ class DatabaseMongo:
             return "No se encontró el destino en la wishlist o no se encontró la wishlist."
 
     # Añadir reacciones a los posts
-    def add_reaction_to_post(self, post_id, reaction: Likes):
+    def add_reaction_to_post(self, post_id, react_id):
         res = self.db.posts.update_one(
             { "_id": ObjectId(post_id) },
-            { "$addToSet": { "reacciones": reaction.dict() } }
+            { "$addToSet": { "reacciones": react_id } }
         )
         if res.modified_count > 0:
             return "Reacción agregada al post con éxito."
         else:
             return "No se pudo agregar la reacción al post."
+        
 
     # Quitar reacciones de los posts 
-    def remove_reaction_from_post(self, post_id, reaction: Likes):
+    def remove_reaction_from_post(self, post_id, react_id):
         res = self.db.posts.update_one(
-            { "_id": ObjectId(post_id) },
-            { "$pull": { "reacciones": { "react_id": reaction.react_id } } }
+            { "_id": ObjectId(post_id), "reacciones.react_id": react_id  },
+            { "$set": { "reacciones.$.active": False } }
         )
         if res.modified_count > 0:
             return "Reacción removida del post con éxito."
@@ -219,7 +220,7 @@ class DatabaseMongo:
         comment_data['reacciones'] = []
         res = self.db.posts.update_one(
             { "_id": ObjectId(post_id) },
-            { "$addToSet": { "comentarios": comment_data } }
+            { "$addToSet": { "comentarios": comment.coment_id } }
         )
         if res.modified_count > 0:
             return "Comentario agregado al post con éxito."
@@ -229,8 +230,8 @@ class DatabaseMongo:
     # Quitar comentarios de los posts
     def remove_comment_from_post(self, post_id, comment_id):
         res = self.db.posts.update_one(
-            { "_id": ObjectId(post_id) },
-            { "$pull": { "comentarios": { "coment_id": comment_id } } }
+            { "_id": ObjectId(post_id), "comentarios.coment_id": comment_id },
+            { "$set": { "comentarios.$.active": False } }
         )
         if res.modified_count > 0:
             return "Comentario removido del post con éxito."
@@ -238,10 +239,10 @@ class DatabaseMongo:
             return "No se pudo remover el comentario del post."
 
     # Añadir reacciones a los comentarios
-    def add_reaction_to_comment(self, post_id, comment_id, reaction: Likes):
+    def add_reaction_to_comment(self, post_id, comment_id, react_id):
         res = self.db.posts.update_one(
             { "_id": ObjectId(post_id), "comentarios.coment_id": comment_id },
-            { "$addToSet": { "comentarios.$.reacciones": reaction.dict() } }
+            { "$addToSet": { "comentarios.$.reacciones": react_id } }
         )
         if res.modified_count > 0:
             return "Reacción agregada al comentario con éxito."
@@ -249,10 +250,10 @@ class DatabaseMongo:
             return "No se pudo agregar la reacción al comentario."
     
     # Quitar reacciones de los comentarios
-    def remove_reaction_from_comment(self, post_id, comment_id, reaction: Likes):
+    def remove_reaction_from_comment(self, post_id, comment_id, react_id):
         res = self.db.posts.update_one(
             { "_id": ObjectId(post_id), "comentarios.coment_id": comment_id },
-            { "$pull": { "comentarios.$.reacciones": { "react_id": reaction.react_id } } }
+            { "$pull": { "comentarios.$.reacciones": { "react_id": react_id } } }
         )
         if res.modified_count > 0:
             return "Reacción removida del comentario con éxito."

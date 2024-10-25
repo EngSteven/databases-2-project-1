@@ -12,6 +12,13 @@
 Este proyecto consiste en desarrollar el backend de una red social orientada a compartir experiencias de
 viaje. El objetivo es que los usuarios puedan realizar publicaciones sobre sus viajes, agregar destinos a sus listas de objetivos de viaje y que otros usuarios interactúen con estas publicaciones mediante comentarios, likes y reacciones. Además, los usuarios podrán crear listas de destinos de viaje y asociar lugares a cada viaje. No se requiere frontend; el enfoque está en el backend, utilizando bases de datos Postgres, MongoDB y Redis, y desplegando todo el sistema mediante Docker y Docker Compose.
 
+## Guía de instalación
+
+-	Descargar el archivo .rar que contiene todos los archivos fuente del proyecto.
+-	Abrir la localización en una terminal, se recomienda PowerShell o Bash.
+-	Tener abierto y ejecutando el Docker Desktop.
+-	En la terminal, insertar el comando docker-compose up –-build
+NOTA: Todas las librerías y servicios necesarios se encuentran en el docker-compose.
 
 ## Funcionalidades principales 
 

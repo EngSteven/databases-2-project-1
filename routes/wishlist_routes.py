@@ -36,9 +36,22 @@ async def get_wishlist(wishlist_id: str):
 async def get_user_wishlists(user_id: int):
     # Verificar si el token es válido y el usuario está autenticado
     #username = verify_token(token)
-
+    
     res = db_mongo.get_user_wishlists(user_id)
     return {"wishlist": res}
+
+@router.get("/wishlists/destinies/{wishlist_id}")
+async def get_wishlist_destinies(wishlist_id: str):
+    # Verificar si el token es válido y el usuario está autenticado
+    #username = verify_token(token)
+    wishlist_id = wishlist_id.strip() # eliminar caracteres no deseados
+    try:
+        object_id = ObjectId(wishlist_id)
+    except:
+        raise HTTPException(status_code=400, detail="El id del wishlist debe ser un ObjectId")
+
+    res = db_mongo.get_wishlist_destinies(object_id)
+    return {"Destinies": res}
 
 @router.post("/wishlists/wishlist/{user_id}")
 async def register_wishlist(user_id: int, wishlist: WishlistRequest):
@@ -84,12 +97,11 @@ async def activate_wishlist(wishlist_id: str):
 
 
 @router.put("/wishlists/wishlist/{user_id}/{wishlist_id}")
-async def update_wishlist(user_id: int, wishlist_id: str, wishlist: WishlistRequest):
+async def update_wishlist(user_id: int, wishlist_id: str, wishlist: WishlistUpdateRequest):
     # Verificar si el usuario existe en la base de datos PostgreSQL
     if db_postgres.check_user_exists(user_id):
-        wishlist_data = WishlistRequest(
-            list_name = wishlist.list_name,
-            destinies = wishlist.destinies,
+        wishlist_data = WishlistUpdateRequest(
+            list_name = wishlist.list_name
         )
         wishlist_id = wishlist_id.strip() # eliminar caracteres no deseados
         try:

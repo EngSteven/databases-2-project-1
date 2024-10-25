@@ -38,6 +38,15 @@ class TravelRequest(BaseModel):
     description: str
     places_visited: list
 
+class TravelUpdateRequest(BaseModel):
+    trip_name: str
+    description: str
+
+class TravelDestiny(BaseModel):
+    user_id: int
+    travel_id: str 
+    destiny_id: str
+
 class DestinyRegister(BaseModel):
     user_id: int
     destiny_name: str
@@ -59,6 +68,9 @@ class WishlistRequest(BaseModel):
     list_name: str
     destinies: list
 
+class WishlistUpdateRequest(BaseModel):
+    list_name: str
+
 class WishlistFollow(BaseModel):
     user_id: int
     wishlist_id: str 
@@ -78,7 +90,6 @@ class LikesRequest(BaseModel):
     reaccion: str
 
 class LikesUpdateRequest(BaseModel):
-    reaction_id: str
     reaccion: str
 
 class Comment(BaseModel):
@@ -102,15 +113,12 @@ class PostRequest(BaseModel):
     images: list
 
 class PostUpdateRequest(BaseModel):
-    post_id: str
     text: str
-    images: list
 
 class CommentRequest(BaseModel):
     coment_text: str
 
 class CommentUpdateRequest(BaseModel):
-    comment_id: str
     coment_text: str
 
     

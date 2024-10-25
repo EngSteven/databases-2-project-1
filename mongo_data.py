@@ -33,6 +33,28 @@ class DatabaseMongo:
             if '_id' in doc:
                 doc['_id'] = str(doc['_id'])  # convierte ObjectId a cadena
         return docs
+    
+    def verify_existing_ids(self, collection_name: str, ids: list):
+        valid_ids = []
+        
+        for item_id in ids:
+            # Convertir el ID a ObjectId
+            try:
+                object_id = ObjectId(item_id)
+            except Exception as e:
+                return {"Error": f"Formato de ObjectId incorrecto: {e}"}
+            
+            # Verificar si el ID existe y está activo
+            exists = self.db[collection_name].find_one({"_id": object_id, "is_active": True})
+            
+            if not exists:
+                return {"Error": f"El id {item_id} no existe o esta inactivo"}
+            
+            # Si el ID es válido, agregarlo a la lista
+            valid_ids.append(object_id)
+        
+        return valid_ids
+
 
     def get_user_posts(self, user_id):
         res = list(self.db.posts.find({"usuario_id": user_id}))
@@ -224,6 +246,7 @@ class DatabaseMongo:
     --------------------------------------------------------------------------------------------------------
     """
 
+
     def get_wishlists(self):
         res = list(self.db.wishlists.find({"is_active": True}))
         return self.serialize_object_ids(res)
@@ -236,13 +259,43 @@ class DatabaseMongo:
         res = list(self.db.wishlists.find({"user_id": user_id, "is_active": True}))
         return self.serialize_object_ids(res)
 
+    def get_wishlist_destinies(self, wishlist_id: ObjectId):
+        wishlist = self.db.wishlists.find_one({"_id": wishlist_id, "is_active": True})
+
+        if wishlist:
+            # Obtener los IDs de los destinos asociados en la wishlist
+            destiny_ids = wishlist.get("destinies", [])
+
+            # Asegurarse de que los travel_ids sean ObjectId
+            destiny_object_ids = []
+            for destiny_id in destiny_ids:
+                try:
+                    destiny_object_ids.append(ObjectId(destiny_id))
+                except Exception as e:
+                    print(f"Error converting travel_id: {destiny_id} to ObjectId: {e}")
+            
+            # Buscar los viajes cuyos IDs están en travel_object_ids y que estén activos
+            destinies = list(self.db.destinies.find({"_id": {"$in": destiny_object_ids}, "is_active": True}))
+
+            # Serializar los ObjectIds de los viajes
+            return self.serialize_object_ids(destinies)
+        
+        return {"Error": "Wishlist no existe"}
+
     def register_wishlist(self, user_id: int, wishlist: WishlistRequest):
+        # Verificar que todos los destinos ingresados existan en la base de datos de destinies
+        valid_destinies = self.verify_existing_ids("destinies", wishlist.destinies)
+        
+        if isinstance(valid_destinies, dict) and "Error" in valid_destinies:
+            return valid_destinies  # Retornar error si hubo alguno
+
         wishlist_data = {
             'user_id': user_id,
             'list_name' : wishlist.list_name,
             'destinies' : wishlist.destinies,
             'followers' : [],
-            'num_followers': 0
+            'num_followers': 0,
+            'is_active': True
         }
 
         res = self.db.wishlists.insert_one(wishlist_data)
@@ -270,10 +323,9 @@ class DatabaseMongo:
             return "No se pudo activar la lista."
 
 
-    def update_wishlist(self, wishlist_id, wishlist: WishlistRequest):
+    def update_wishlist(self, wishlist_id, wishlist: WishlistUpdateRequest):
         updated_data = {
-            'list_name' : wishlist.list_name,
-            'destinies' : wishlist.destinies,
+            'list_name' : wishlist.list_name
         }
 
         # Filtro para identificar el destino que se va a actualizar

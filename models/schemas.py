@@ -59,6 +59,9 @@ class WishlistRequest(BaseModel):
     list_name: str
     destinies: list
 
+class WishlistUpdateRequest(BaseModel):
+    list_name: str
+
 class WishlistFollow(BaseModel):
     user_id: int
     wishlist_id: str 

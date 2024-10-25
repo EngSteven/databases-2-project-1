@@ -7,6 +7,16 @@ from bson import ObjectId
 router = APIRouter()
 db = DatabaseMongo()
 
+"""
+--------------------------------------------------
+POSTS
+--------------------------------------------------
+"""
+
+@router.get("/posts")
+async def get_posts():
+    res = db.get_all_posts()    
+    return {"Posts recientes": res}
 
 @router.post("/{user_id}/posts/post")
 async def insert_post(user_id: int, post: PostRequest): #Sirve
@@ -15,26 +25,35 @@ async def insert_post(user_id: int, post: PostRequest): #Sirve
         images = post.images,
     )
     res = db.insert_post(user_id, post_data)
-    print("Post: ", res)
     return {"Post ingresado": res}
 
 @router.get("/{user_id}/posts")
 async def get_posts(user_id: int):
     res = db.get_user_posts(user_id)    
-    print("Posts:", res)
-    return {"Posts recientes": res}
-
-@router.get("/posts")
-async def get_posts():
-    res = db.get_all_posts()    
-    print("Posts:", res)
     return {"Posts recientes": res}
 
 @router.get("/{user_id}/posts/{post_id}")
 async def get_post(post_id: str):
-    res = db.get_user_post(ObjectId(post_id)) #Falta en mongo_data
-    print("Post:", res)
+    res = db.get_post_from_post(ObjectId(post_id)) 
     return {"Post": res}
+
+@router.put("/{user_id}/posts/{post_id}/update")
+async def update_post(post_id: str, post: PostUpdateRequest):  
+    post_data = PostUpdateRequest(
+        text = post.text
+    )
+    res = db.set_post(post_id, post_data)
+    return {"Post actualizado": res}
+
+@router.delete("/{user_id}/posts/{post_id}/delete")
+async def delete_post(post_id: str):
+    return {db.delete_post(post_id)}
+
+"""
+--------------------------------------------------
+COMMENTS
+--------------------------------------------------
+"""
 
 @router.post("/{user_id}/posts/{post_id}/comment")
 async def post_comment(user_id: int, post_id: str, comment: CommentRequest):
@@ -45,39 +64,11 @@ async def post_comment(user_id: int, post_id: str, comment: CommentRequest):
     print("Comentario: ", res)
     return{"Comentario" : res}
 
-
-#Este no sé si funciona
-@router.post("/{user_id}/posts/{post_id}/react")
-async def post_reaction(user_id: int, post_id: str, reaccion: LikesRequest):
-    post_data = LikesRequest(
-        reaction = reaccion.reaccion
-    )
-    res = db.insert_reaction(user_id, ObjectId(post_id), post_data)
-    print("Reaccion: ", res)
-    return{"Reaccion" : res}
-
 @router.get("/{user_id}/posts/{post_id}/{comment_id}")
-async def get_comment(comment_id: str):
-    res = db.get_user_comment(ObjectId(comment_id))
+async def get_comment(user_id: int, post_id: str, comment_id: str):
+    res = db.get_comment(user_id, ObjectId(post_id), ObjectId(comment_id))
     print("Comentario:", res)
     return {"Comentario": res}
-
-@router.get("/{user_id}/posts/{post_id}/{reaction_id}")
-async def get_reaction(reaction_id: str):
-    res = db.get_user_reaction(ObjectId(reaction_id))
-    print("Reaccion:", res)
-    return {"Reaccion": res}
-
-@router.put("/{user_id}/posts/{post_id}/update")
-async def update_post(post_id: str, post: PostUpdateRequest):
-    post_data = PostUpdateRequest(
-        post_id = post_id,
-        text = post.text,
-        images = post.images,
-    )
-    res = db.update_post(post_data)
-    print("Post: ", res)
-    return {"Post actualizado": res}
 
 @router.put("/{user_id}/posts/{post_id}/{comment_id}/update")
 async def update_comment(comment_id: str, comment: CommentUpdateRequest):
@@ -89,6 +80,33 @@ async def update_comment(comment_id: str, comment: CommentUpdateRequest):
     print("Post: ", res)
     return {"Post actualizado": res}
 
+@router.delete("/{user_id}/posts/{post_id}/{comment_id}/delete")
+async def delete_comment(comment_id: str): 
+    db.delete__user_comment(ObjectId(comment_id))
+    return {"Comentario eliminado exitosamente"}
+
+"""
+--------------------------------------------------
+REACTIONS
+--------------------------------------------------
+"""
+
+#Este no sé si funciona
+@router.post("/{user_id}/posts/{post_id}/react")
+async def post_reaction(user_id: int, post_id: str, reaccion: LikesRequest):
+    post_data = LikesRequest(
+        reaction = reaccion.reaccion
+    )
+    res = db.add_reaction_to_post(user_id, ObjectId(post_id), post_data)
+    print("Reaccion: ", res)
+    return{"Reaccion" : res}
+
+@router.get("/{user_id}/posts/{post_id}/{reaction_id}")
+async def get_reaction(reaction_id: str):
+    res = db.get_reaction(ObjectId(reaction_id))
+    print("Reaccion:", res)
+    return {"Reaccion": res}
+
 @router.put("/{user_id}/posts/{post_id}/{reaction_id}/update")
 async def update_reaction(reaction_id: str, reaccion: LikesUpdateRequest):
     post_data = LikesUpdateRequest(
@@ -98,16 +116,6 @@ async def update_reaction(reaction_id: str, reaccion: LikesUpdateRequest):
     res = db.update_reaction(post_data)
     print("Post: ", res)
     return {"Post actualizado": res}
-
-@router.delete("/{user_id}/posts/{post_id}/delete")
-async def delete_post(post_id: str):
-    db.delete_user_posts(ObjectId(post_id))
-    return {"Posts borrado exitosamente"}
-
-@router.delete("/{user_id}/posts/{post_id}/{comment_id}/delete")
-async def delete_comment(comment_id: str): 
-    db.delete__user_comment(ObjectId(comment_id))
-    return {"Comentario eliminado exitosamente"}
 
 @router.delete("/{user_id}/posts/{post_id}/{reaction_id}/delete")
 async def delete_reaction(reaction_id: str):
@@ -130,4 +138,8 @@ TODO:
         11. Si quiere eliminar un post utilizar {user_id}/posts/{post_id}/delete con un DELETE
         12. Si quiere eliminar un comentario utilizar {user_id}/posts/{post_id}/{comment_id}/delete con un DELETE
         13. Si quiere eliminar una reacción utilizar {user_id}/posts/{post_id}/{reaction_id}/delete con un DELETE
+        14. Si quiere añadir reacción a comentario {user_id}/posts/{post_id}/{comment_id}/react
+        15. Si quiere ver reacción a comentario {user_id}/posts/{post_id}/{comment_id}/{reaction_id}
+        16. Si quiere ver reacción a comentario {user_id}/posts/{post_id}/{comment_id}/{reaction_id}/update
+        17. Si quiere ver reacción a comentario {user_id}/posts/{post_id}/{comment_id}/{reaction_id}/delete
 """

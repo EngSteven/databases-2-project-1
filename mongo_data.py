@@ -11,6 +11,8 @@ config = {
     "database": os.getenv("MONGO_DB")
 }
 
+
+
 class DatabaseMongo:
     def __init__(self):
         client = MongoClient(
@@ -20,6 +22,7 @@ class DatabaseMongo:
             password=config["password"]
         )
         self.db = client[config["database"]]
+        self.reacciones = ["me gusta", "me encanta", "me enamora", "me asombra", "me entristece", "me enoja"]
 
     def close_connection(self):
         self.client.close()  
@@ -45,7 +48,8 @@ class DatabaseMongo:
             'text': post.text,
             'images': post.images,
             'reacciones': [],
-            'comentarios': []
+            'comentarios': [],
+            'active': True
         }
 
         res = self.db.posts.insert_one(post_data)
@@ -326,16 +330,18 @@ class DatabaseMongo:
     """
 
     # Añadir reacciones a los posts
-    def add_reaction_to_post(self, post_id, react_id):
-        res = self.db.posts.update_one(
-            { "_id": ObjectId(post_id) },
-            { "$addToSet": { "reacciones": react_id } }
-        )
-        if res.modified_count > 0:
-            return "Reacción agregada al post con éxito."
-        else:
-            return "No se pudo agregar la reacción al post."
-        
+    def add_reaction_to_post(self, post_id, react_id, reaccion: LikesRequest):
+        if reaccion.reaccion in self.reacciones:    
+            res = self.db.posts.update_one(
+                { "_id": ObjectId(post_id) },
+                { "$addToSet": { "reacciones": react_id } }
+            )
+            if res.modified_count > 0:
+                return "Reacción agregada al post con éxito."
+            else:
+                return "No se pudo agregar la reacción al post."
+        return "Reacción no encontrada"
+            
 
     # Quitar reacciones de los posts 
     def remove_reaction_from_post(self, post_id, react_id):
@@ -357,6 +363,37 @@ class DatabaseMongo:
             return res["reacciones"][0]
         else:
             return None
+        
+    def get_post_from_post(self, post_id):
+        res = list(self.db.posts.find(
+             {"_id": ObjectId(post_id)}
+             ))
+        # Si existe, regresa el post
+        if res:
+            return self.serialize_object_ids(res)
+        else:
+            return None
+        
+    def set_post(self, post_id: str, P_reaction: PostUpdateRequest):
+        res = self.db.posts.update_one(
+            { "_id": ObjectId(post_id)},
+            { "$set": { "text": P_reaction.text}}
+        )
+        if res.modified_count > 0:
+            return "Reacción del post modificada con éxito."
+        else:
+            return "No se pudo modificar la reacción del post."
+        
+    def delete_post(self, post_id: str):
+        print(post_id)
+        res = self.db.posts.update_one(
+            { "_id": ObjectId(post_id)},
+            { "$set": { "active": False }}
+        )
+        if res.modified_count > 0:
+            return "Post borrado con éxito."
+        else:
+            return "No se pudo borrar el post."
         
     def set_reaction_from_post(self, post_id, react_id, P_reaction):
         res = self.db.posts.update_one(

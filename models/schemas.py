@@ -102,9 +102,7 @@ class PostRequest(BaseModel):
     images: list
 
 class PostUpdateRequest(BaseModel):
-    post_id: str
     text: str
-    images: list
 
 class CommentRequest(BaseModel):
     coment_text: str

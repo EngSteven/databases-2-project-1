@@ -38,6 +38,15 @@ class TravelRequest(BaseModel):
     description: str
     places_visited: list
 
+class TravelUpdateRequest(BaseModel):
+    trip_name: str
+    description: str
+
+class TravelDestiny(BaseModel):
+    user_id: int
+    travel_id: str 
+    destiny_id: str
+
 class DestinyRegister(BaseModel):
     user_id: int
     destiny_name: str

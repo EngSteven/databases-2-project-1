@@ -94,8 +94,38 @@ class DatabaseMongo:
     def get_user_travels(self, user_id: int):
         res = list(self.db.travels.find({"user_id": user_id, "is_active": True}))
         return self.serialize_object_ids(res)
+    
+    def get_travel_destinies(self, travel_id: ObjectId):
+        travel = self.db.travels.find_one({"_id": travel_id, "is_active": True})
+
+        if travel:
+            # Obtener los IDs de los destinos asociados en los viajes
+            destiny_ids = travel.get("places_visited", [])
+
+            # Asegurarse de que los destiny_ids sean ObjectId
+            destiny_object_ids = []
+            for destiny_id in destiny_ids:
+                try:
+                    destiny_object_ids.append(ObjectId(destiny_id))
+                except Exception as e:
+                    print(f"Error converting travel_id: {destiny_id} to ObjectId: {e}")
+            
+            # Buscar los viajes cuyos IDs están en destiny_object_ids y que estén activos
+            destinies = list(self.db.destinies.find({"_id": {"$in": destiny_object_ids}, "is_active": True}))
+
+            # Serializar los ObjectIds de los viajes
+            return self.serialize_object_ids(destinies)
+        
+        return {"Error": "Viaje ingresado no existe"}
 
     def register_travel(self, user_id: int, travel: TravelRequest):
+        # Verificar que todos los destinos ingresados existan en la base de datos de destinies
+        valid_destinies = self.verify_existing_ids("destinies", travel.places_visited)
+        
+        if isinstance(valid_destinies, dict) and "Error" in valid_destinies:
+            return valid_destinies  # Retornar error si hubo alguno
+
+
         travel_data = {
             'user_id': user_id,
             'trip_name': travel.trip_name,
@@ -132,11 +162,10 @@ class DatabaseMongo:
             return "No se pudo activar el viaje."
 
 
-    def update_travel(self, travel_id, travel: TravelRequest):
+    def update_travel(self, travel_id, travel: TravelUpdateRequest):
         updated_data = {
             'trip_name': travel.trip_name,
             'description': travel.description,
-            'places_visited': travel.places_visited,
         }
 
         filter = {'_id': travel_id}
@@ -150,6 +179,36 @@ class DatabaseMongo:
             return "Viaje actualizado"
         else:
             return "No se encontró el viaje ingresado"  # Indicar que no se encontró o no se modificó el destino
+
+
+    def add_destiny_to_travel(self, travel: TravelDestiny):
+        # Verificar que el destino ingresado exista y esté activo
+        destiny_exists = self.db.destinies.find_one({"_id": ObjectId(travel.destiny_id), "is_active": True})
+
+        if not destiny_exists:
+            return {"Error": "El destino ingresado no existe o está inactivo."}
+
+        res = self.db.travels.update_one(
+            { "_id": ObjectId(travel.travel_id), "user_id": travel.user_id},
+            { "$addToSet": { "places_visited": travel.destiny_id } }
+        )
+
+        if res.modified_count > 0:
+            return "Destino agregado al viaje con éxito." 
+        else:
+            return "No se encontró el viaje ingresado o el destino ya existe en el viaje."
+    
+    def remove_destiny_from_travel(self, travel: TravelDestiny):
+
+        res = self.db.travels.update_one(
+            { "_id": ObjectId(travel.travel_id), "user_id": travel.user_id},
+            { "$pull": { "places_visited": travel.destiny_id } }
+        )
+
+        if res.modified_count > 0:
+            return "Destino eliminado del viaje con éxito." 
+        else:
+            return "No se pudo encontrar el viaje o destino ingresado."
 
 
     """
@@ -393,7 +452,12 @@ class DatabaseMongo:
     
     # marcar destinos como objetivos propios
     def add_destiny_to_wishlist(self, wishlist: WishlistDestiny):
+        # Verificar que el destino ingresado exista y esté activo
+        destiny_exists = self.db.destinies.find_one({"_id": ObjectId(wishlist.destiny_id), "is_active": True})
 
+        if not destiny_exists:
+            return {"Error": "El destino ingresado no existe o está inactivo."}
+        
         res = self.db.wishlists.update_one(
             { "_id": ObjectId(wishlist.wishlist_id), "user_id": wishlist.user_id},
             { "$addToSet": { "destinies": wishlist.destiny_id } }

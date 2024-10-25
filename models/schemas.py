@@ -81,7 +81,6 @@ class LikesRequest(BaseModel):
     reaccion: str
 
 class LikesUpdateRequest(BaseModel):
-    reaction_id: str
     reaccion: str
 
 class Comment(BaseModel):
@@ -111,7 +110,6 @@ class CommentRequest(BaseModel):
     coment_text: str
 
 class CommentUpdateRequest(BaseModel):
-    comment_id: str
     coment_text: str
 
     

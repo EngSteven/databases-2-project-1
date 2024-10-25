@@ -11,6 +11,7 @@ config = {
     "database": os.getenv("MONGO_DB")
 }
 
+reacciones = ["me gusta", "me encanta", "me emociona", "me asombra", "me entristece", "me enoja"]
 
 
 class DatabaseMongo:
@@ -54,35 +55,27 @@ class DatabaseMongo:
             valid_ids.append(object_id)
         
         return valid_ids
-
-
-    def get_user_posts(self, user_id):
-        res = list(self.db.posts.find({"usuario_id": user_id}))
-        return self.serialize_object_ids(res)
     
-    def get_all_posts(self):
-        res = list(self.db.posts.find())
-        return self.serialize_object_ids(res)
-
-    def insert_post(self, user_id, post: PostRequest):
-        post_data = {
-            'usuario_id': user_id,
-            'text': post.text,
-            'images': post.images,
-            'reacciones': [],
-            'comentarios': [],
-            'active': True
-        }
-
-        res = self.db.posts.insert_one(post_data)
-        post_data['_id'] = str(res.inserted_id)     # convertir el ObjectId a cadena
-        return post_data
-
-    def insert_comment(self, comment: CommentRequest):
-        comment_data = {
-            'user_id' : comment.user_id,
-            'text' : comment.coment_text 
-        }
+    def verify_existing_ids_posts(self, collection_name: str, ids: list):
+        valid_ids = []
+        
+        for item_id in ids:
+            # Convertir el ID a ObjectId
+            try:
+                object_id = ObjectId(item_id)
+            except Exception as e:
+                return {"Error": f"Formato de ObjectId incorrecto: {e}"}
+            
+            # Verificar si el ID existe y está activo
+            exists = self.db[collection_name].find_one({"_id": object_id, "active": True})
+            
+            if not exists:
+                return {"Error": f"El id {item_id} no existe o esta inactivo"}
+            
+            # Si el ID es válido, agregarlo a la lista
+            valid_ids.append(object_id)
+        
+        return valid_ids
 
     """
     --------------------------------------------------------------------------------------------------------
@@ -432,45 +425,32 @@ class DatabaseMongo:
     POSTS
     --------------------------------------------------------------------------------------------------------
     """
+    #TODO ver primero el active para mostrar solo las activas
+    def get_user_posts(self, user_id):
+        res = list(self.db.posts.find({"usuario_id": user_id, "active": True}))
+        return self.serialize_object_ids(res)
+    
+    def get_all_posts(self):
+        res = list(self.db.posts.find({"active" : True}))
+        return self.serialize_object_ids(res)
 
-    # Añadir reacciones a los posts
-    def add_reaction_to_post(self, post_id, react_id, reaccion: LikesRequest):
-        if reaccion.reaccion in self.reacciones:    
-            res = self.db.posts.update_one(
-                { "_id": ObjectId(post_id) },
-                { "$addToSet": { "reacciones": react_id } }
-            )
-            if res.modified_count > 0:
-                return "Reacción agregada al post con éxito."
-            else:
-                return "No se pudo agregar la reacción al post."
-        return "Reacción no encontrada"
-            
+    def insert_post(self, user_id, post: PostRequest):
+        post_data = {
+            'usuario_id': user_id,
+            'text': post.text,
+            'images': post.images,
+            'reacciones': [],
+            'comentarios': [],
+            'active': True
+        }
 
-    # Quitar reacciones de los posts 
-    def remove_reaction_from_post(self, post_id, react_id):
-        res = self.db.posts.update_one(
-            { "_id": ObjectId(post_id), "reacciones.react_id": react_id  },
-            { "$set": { "reacciones.$.active": False } }
-        )
-        if res.modified_count > 0:
-            return "Reacción removida del post con éxito."
-        else:
-            return "No se pudo remover la reacción del post."
+        res = self.db.posts.insert_one(post_data)
+        post_data['_id'] = str(res.inserted_id)    
+        return post_data
 
-    def get_reaction_from_post(self, post_id, react_id):
-        res = self.db.posts.find_one(
-             {"_id": ObjectId(post_id), "reacciones.react_id": react_id}
-             )
-        # Si existe, regresa la reaccion pedida
-        if res and "reacciones" in res:
-            return res["reacciones"][0]
-        else:
-            return None
-        
     def get_post_from_post(self, post_id):
         res = list(self.db.posts.find(
-             {"_id": ObjectId(post_id)}
+             {"_id": ObjectId(post_id), "active" : True}
              ))
         # Si existe, regresa el post
         if res:
@@ -479,6 +459,10 @@ class DatabaseMongo:
             return None
         
     def set_post(self, post_id: str, P_reaction: PostUpdateRequest):
+        valid_ids = self.verify_existing_ids_posts("posts", [post_id])
+        if isinstance(valid_ids, dict) and "Error" in valid_ids:
+            return "Post no existe"
+        
         res = self.db.posts.update_one(
             { "_id": ObjectId(post_id)},
             { "$set": { "text": P_reaction.text}}
@@ -489,7 +473,10 @@ class DatabaseMongo:
             return "No se pudo modificar la reacción del post."
         
     def delete_post(self, post_id: str):
-        print(post_id)
+        valid_ids = self.verify_existing_ids_posts("posts", [post_id])
+        if isinstance(valid_ids, dict) and "Error" in valid_ids:
+            return "Post no existe"
+        
         res = self.db.posts.update_one(
             { "_id": ObjectId(post_id)},
             { "$set": { "active": False }}
@@ -498,24 +485,29 @@ class DatabaseMongo:
             return "Post borrado con éxito."
         else:
             return "No se pudo borrar el post."
-        
-    def set_reaction_from_post(self, post_id, react_id, P_reaction):
-        res = self.db.posts.update_one(
-            { "_id": ObjectId(post_id), "reacciones.react_id": react_id  },
-            { "$set": { "reacciones.$.reaccion": P_reaction } }
-        )
-        if res.modified_count > 0:
-            return "Reacción del post modificada con éxito."
-        else:
-            return "No se pudo modificar la reacción del post."
+    
 
+    """
+    --------------------------------------------------------------------------------------------------------
+    COMMENTS
+    --------------------------------------------------------------------------------------------------------
+    """
     # Añadir comentarios a los posts
-    def add_comment_to_post(self, post_id, comment: Comment):
-        comment_data = comment.dict()
-        comment_data['reacciones'] = []
+    def add_comment_to_post(self, user_id, post_id, comment: CommentRequest):
+        valid_ids = self.verify_existing_ids_posts("posts", [post_id])
+        if isinstance(valid_ids, dict) and "Error" in valid_ids:
+            return valid_ids
+
+        comment_data = {
+            "usuario_id" : user_id,
+            "comentario" : comment.coment_text,
+            "reaccion" : [],
+            "active" : True
+        }
+        comment_id = self.db.comentarios.insert_one(comment_data).inserted_id  
         res = self.db.posts.update_one(
-            { "_id": ObjectId(post_id) },
-            { "$addToSet": { "comentarios": comment.coment_id } }
+            { "_id": ObjectId(post_id)},
+            { "$push": { "comentarios": str(comment_id) } }
         )
         if res.modified_count > 0:
             return "Comentario agregado al post con éxito."
@@ -524,14 +516,163 @@ class DatabaseMongo:
     
     # Quitar comentarios de los posts
     def remove_comment_from_post(self, post_id, comment_id):
-        res = self.db.posts.update_one(
-            { "_id": ObjectId(post_id), "comentarios.coment_id": comment_id },
-            { "$set": { "comentarios.$.active": False } }
+        valid_post = self.verify_existing_ids_posts("posts", [post_id])
+        if isinstance(valid_post, dict) and "Error" in valid_post:
+            return "Post no existe" 
+        valid_reaction = self.verify_existing_ids_posts("comentarios", [comment_id])
+        if isinstance(valid_reaction, dict) and "Error" in valid_reaction:
+            return "Comentario no existe" 
+        
+        delete = self.db.comentarios.update_one(
+            { "_id": ObjectId(comment_id)},
+            { "$set": { "active": False }}
         )
-        if res.modified_count > 0:
+        res = self.db.posts.update_one(
+            { "_id": ObjectId(post_id)},
+            { "$pull": { "comentarios": comment_id} }
+        )
+        if res.modified_count > 0 and delete.modified_count > 0:
             return "Comentario removido del post con éxito."
         else:
             return "No se pudo remover el comentario del post."
+        
+    def get_comment_from_post(self, comment_id):
+        valid_reaction = self.verify_existing_ids_posts("comentarios", [comment_id])
+        if isinstance(valid_reaction, dict) and "Error" in valid_reaction:
+            return "Comentario no existe" 
+        res = list(self.db.comentarios.find(
+                {"_id": ObjectId(comment_id)}
+                ))
+        # Si existe, regresa la reaccion pedida
+        return self.serialize_object_ids(res)
+    
+    def get_all_comments_from_post(self, post_id):
+        valid_reaction = self.verify_existing_ids_posts("posts", [post_id])
+        if isinstance(valid_reaction, dict) and "Error" in valid_reaction:
+            return "Post no existe" 
+        
+        post = self.db.posts.find_one({"_id": ObjectId(post_id), "active": True})
+
+        if post:
+            # Obtener los IDs de los comentarios
+            comment_ids = post.get("comentarios", [])
+            
+            # Obtener los comentarios correspondientes a los IDs
+            comments = []
+            if comment_ids:
+                comments = list(self.db.comentarios.find({"_id": {"$in": [ObjectId(comment_id) for comment_id in comment_ids]}, "active": True}))
+        
+        # Si existe, regresa la reaccion pedida
+        return self.serialize_object_ids(comments)
+    
+    def set_comment_from_post(self, comment_id, P_comment: CommentUpdateRequest):
+        valid_reaction = self.verify_existing_ids_posts("comentarios", [comment_id])
+        if isinstance(valid_reaction, dict) and "Error" in valid_reaction:
+            return "Reaccion no existe" 
+        res = self.db.comentarios.update_one(
+            { "_id": ObjectId(comment_id)},
+            { "$set": { "comentario": P_comment.coment_text } }
+        )
+        if res.modified_count > 0:
+            return "Comentario del post modificado con éxito."
+        else:
+            return "No se pudo modificar el comentario del post."
+
+    """
+    --------------------------------------------------------------------------------------------------------
+    REACTIONS
+    --------------------------------------------------------------------------------------------------------
+    """
+
+    # Añadir reacciones a los posts
+    def add_reaction_to_post(self, user_id, post_id, reaccion: LikesRequest):
+        valid_ids = self.verify_existing_ids_posts("posts", [post_id])
+        if isinstance(valid_ids, dict) and "Error" in valid_ids:
+            return valid_ids
+        
+        reaction_data = {
+            "usuario_id" : user_id,
+            "reaccion" : reaccion.reaccion,
+            "active" : True
+        }
+        react_id = self.db.reacciones.insert_one(reaction_data).inserted_id
+        if reaccion.reaccion in self.reacciones:    
+            res = self.db.posts.update_one(
+                { "_id": ObjectId(post_id)},
+                { "$push": { "reacciones": str(react_id) } }
+            )
+            if res.modified_count > 0:
+                return "Reacción agregada al post con éxito."
+            else:
+                return "No se pudo agregar la reacción al post."
+        return "Reacción no encontrada"
+            
+
+    # Quitar reacciones de los posts 
+    def remove_reaction_from_post(self, post_id, react_id):
+        valid_post = self.verify_existing_ids_posts("posts", [post_id])
+        if isinstance(valid_post, dict) and "Error" in valid_post:
+            return "Post no existe" 
+        valid_reaction = self.verify_existing_ids_posts("reacciones", [react_id])
+        if isinstance(valid_reaction, dict) and "Error" in valid_reaction:
+            return "Reaccion no existe" 
+        delete = self.db.reacciones.update_one(
+            { "_id": ObjectId(react_id)},
+            { "$set": { "active": False }}
+        )
+        res = self.db.posts.update_one(
+            { "_id": ObjectId(post_id)},
+            { "$pull": { "reacciones": react_id} }
+        )
+        if res.modified_count > 0 and delete.modified_count > 0:
+            return "Reacción removida del post con éxito."
+        else:
+            return "No se pudo remover la reacción del post."
+
+    def get_reaction_from_post(self, react_id):
+        valid_reaction = self.verify_existing_ids_posts("reacciones", [react_id])
+        if isinstance(valid_reaction, dict) and "Error" in valid_reaction:
+            return "Reaccion no existe" 
+        res = list(self.db.reacciones.find(
+             {"_id": ObjectId(react_id)}
+             ))
+        # Si existe, regresa la reaccion pedida
+        return self.serialize_object_ids(res)
+    
+    def get_all_reactions_from_post(self, post_id):
+        valid_reaction = self.verify_existing_ids_posts("posts", [post_id])
+        if isinstance(valid_reaction, dict) and "Error" in valid_reaction:
+            return "Post no existe" 
+        
+        post = self.db.posts.find_one({"_id": ObjectId(post_id), "active": True})
+
+        if post:
+            # Obtener los IDs de los reacciones
+            react_ids = post.get("reacciones", [])
+            
+            # Obtener los reacciones correspondientes a los IDs
+            reactions = []
+            if react_ids:
+                reactions = list(self.db.reacciones.find({"_id": {"$in": [ObjectId(react_id) for react_id in react_ids]}, "active": True}))
+        
+        # Si existe, regresa la reaccion pedida
+        return self.serialize_object_ids(reactions)
+        
+    def set_reaction_from_post(self, react_id, P_reaction: LikesUpdateRequest):
+        valid_reaction = self.verify_existing_ids_posts("reacciones", [react_id])
+        if isinstance(valid_reaction, dict) and "Error" in valid_reaction:
+            return "Reaccion no existe" 
+        if P_reaction.reaccion in reacciones:
+            res = self.db.reacciones.update_one(
+                { "_id": ObjectId(react_id)},
+                { "$set": { "reaccion": P_reaction.reaccion } }
+            )
+            if res.modified_count > 0:
+                return "Reacción del post modificada con éxito."
+            else:
+                return "No se pudo modificar la reacción del post."
+        else:
+            return "Reacción incorrecta"
 
     # Añadir reacciones a los comentarios
     def add_reaction_to_comment(self, post_id, comment_id, react_id):

@@ -65,15 +65,15 @@ class DatabaseMongo:
     """
 
     def get_travels(self):
-        res = list(self.db.travels.find())
+        res = list(self.db.travels.find({"is_active": True}))
         return self.serialize_object_ids(res)
     
     def get_travel(self, travel_id: ObjectId):
-        res = list(self.db.travels.find({"_id": travel_id}))
+        res = list(self.db.travels.find({"_id": travel_id, "is_active": True}))
         return self.serialize_object_ids(res)
     
     def get_user_travels(self, user_id: int):
-        res = list(self.db.travels.find({"user_id": user_id}))
+        res = list(self.db.travels.find({"user_id": user_id, "is_active": True}))
         return self.serialize_object_ids(res)
 
     def register_travel(self, user_id: int, travel: TravelRequest):
@@ -140,15 +140,15 @@ class DatabaseMongo:
     """
 
     def get_destinies(self):
-        res = list(self.db.destinies.find())
+        res = list(self.db.destinies.find({"is_active": True}))
         return self.serialize_object_ids(res)
     
     def get_destiny(self, destiny_id: ObjectId):
-        res = list(self.db.destinies.find({"_id": destiny_id}))
+        res = list(self.db.destinies.find({"_id": destiny_id, "is_active": True}))
         return self.serialize_object_ids(res)
     
     def get_user_destinies(self, user_id: int):
-        res = list(self.db.destinies.find({"user_id": user_id}))
+        res = list(self.db.destinies.find({"user_id": user_id, "is_active": True}))
         return self.serialize_object_ids(res)
 
     def register_destiny(self, user_id: int, destiny: DestinyRequest):
@@ -221,15 +221,15 @@ class DatabaseMongo:
     """
 
     def get_wishlists(self):
-        res = list(self.db.wishlists.find())
+        res = list(self.db.wishlists.find({"is_active": True}))
         return self.serialize_object_ids(res)
     
     def get_wishlist(self, wishlist_id: ObjectId):
-        res = list(self.db.wishlists.find({"_id": wishlist_id}))
+        res = list(self.db.wishlists.find({"_id": wishlist_id, "is_active": True}))
         return self.serialize_object_ids(res)
     
     def get_user_wishlists(self, user_id: int):
-        res = list(self.db.wishlists.find({"user_id": user_id}))
+        res = list(self.db.wishlists.find({"user_id": user_id, "is_active": True}))
         return self.serialize_object_ids(res)
 
     def register_wishlist(self, user_id: int, wishlist: WishlistRequest):

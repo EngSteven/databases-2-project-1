@@ -642,6 +642,92 @@ class DatabaseMongo:
         else:
             return "No se pudo modificar el comentario del post."
 
+    # Añadir comentarios a los posts
+    def add_comment_to_destiny(self, user_id, destiny_id, destiny: DestinyRequest):
+        valid_ids = self.verify_existing_ids("destinies", [destiny_id])
+        if isinstance(valid_ids, dict) and "Error" in valid_ids:
+            return valid_ids
+
+        comment_data = {
+            "usuario_id" : user_id,
+            "comentario" : destiny.coment_text,
+            "reaccion" : [],
+            "active" : True
+        }
+        comment_id = self.db.comentarios.insert_one(comment_data).inserted_id  
+        res = self.db.destinies.update_one(
+            { "_id": ObjectId(destiny_id)},
+            { "$push": { "comentarios": str(comment_id) } }
+        )
+        if res.modified_count > 0:
+            return "Comentario agregado al destino con éxito."
+        else:
+            return "No se pudo agregar el comentario al destino."
+    
+    # Quitar comentarios de los posts
+    def remove_comment_from_destiny(self, destiny_id, comment_id):
+        valid_post = self.verify_existing_ids("destinies", [destiny_id])
+        if isinstance(valid_post, dict) and "Error" in valid_post:
+            return "Destino no existe" 
+        valid_reaction = self.verify_existing_ids_posts("comentarios", [comment_id])
+        if isinstance(valid_reaction, dict) and "Error" in valid_reaction:
+            return "Comentario no existe" 
+        
+        delete = self.db.comentarios.update_one(
+            { "_id": ObjectId(comment_id)},
+            { "$set": { "active": False }}
+        )
+        res = self.db.destinies.update_one(
+            { "_id": ObjectId(destiny_id)},
+            { "$pull": { "comentarios": comment_id} }
+        )
+        if res.modified_count > 0 and delete.modified_count > 0:
+            return "Comentario removido del destino con éxito."
+        else:
+            return "No se pudo remover el comentario del destino."
+        
+    def get_comment_from_destiny(self, comment_id):
+        valid_reaction = self.verify_existing_ids_posts("comentarios", [comment_id])
+        if isinstance(valid_reaction, dict) and "Error" in valid_reaction:
+            return "Comentario no existe" 
+        res = list(self.db.comentarios.find(
+                {"_id": ObjectId(comment_id)}
+                ))
+        # Si existe, regresa la reaccion pedida
+        return self.serialize_object_ids(res)
+    
+    def get_all_comments_from_destiny(self, destiny_id):
+        valid_reaction = self.verify_existing_ids("destinies", [destiny_id])
+        if isinstance(valid_reaction, dict) and "Error" in valid_reaction:
+            return "Destino no existe" 
+        
+        post = self.db.destinies.find_one({"_id": ObjectId(destiny_id), "active": True})
+
+        if post:
+            # Obtener los IDs de los comentarios
+            comment_ids = post.get("comentarios", [])
+            
+            # Obtener los comentarios correspondientes a los IDs
+            comments = []
+            if comment_ids:
+                comments = list(self.db.comentarios.find({"_id": {"$in": [ObjectId(comment_id) for comment_id in comment_ids]}, "active": True}))
+        
+        # Si existe, regresa la reaccion pedida
+        return self.serialize_object_ids(comments)
+    
+    def set_comment_from_destiny(self, comment_id, P_comment: CommentUpdateRequest):
+        valid_reaction = self.verify_existing_ids_posts("comentarios", [comment_id])
+        if isinstance(valid_reaction, dict) and "Error" in valid_reaction:
+            return "Reaccion no existe" 
+        res = self.db.comentarios.update_one(
+            { "_id": ObjectId(comment_id)},
+            { "$set": { "comentario": P_comment.coment_text } }
+        )
+        if res.modified_count > 0:
+            return "Comentario del post modificado con éxito."
+        else:
+            return "No se pudo modificar el comentario del post."
+
     """
     --------------------------------------------------------------------------------------------------------
     REACTIONS

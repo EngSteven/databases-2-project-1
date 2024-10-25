@@ -130,24 +130,3 @@ async def delete_reaction(post_id: str, reaction_id: str):
     res = db.remove_reaction_from_post(post_id, reaction_id)
     return {res}
 
-"""
-TODO: 
-    Flujo de interacción:
-        1. Cuando el usuario ingresa lo que ve es un GET con los posts más recientes (Query para mostrar los post por ingreso) {user_id}/posts/
-        2. Ingresar al post que quiera ver con {user_id}/posts/{post_id} y GET de ese post
-        3. Si quiere comentar ese post utilizar el {user_id}/posts/{post_id}/comment con un POST
-        4. Si quiere reaccionar a ese post utilizar el {user_id}/posts/{post_id}/react con un POST
-        5. Si quiere ver el comentario utilizar el {user_id}/posts/{post_id}/{comment_id} con un GET
-        6. Si quiere ver la reacción utilizar el {user_id}/posts/{post_id}/{reaction_id} con un GET
-        7. Si quiere ingresar un nuevo post utilizar {user_id}/posts/post con un POST
-        8. Si quiere modificar un post utilizar {user_id}/posts/{post_id}/update con un UPDATE
-        9. Si quiere modificar un comentario utilizar {user_id}/posts/{post_id}/{comment_id}/update con un UPDATE
-        10. Si quiere modificar una reacción utilizar {user_id}/posts/{post_id}/{reaction_id}/update con un UPDATE
-        11. Si quiere eliminar un post utilizar {user_id}/posts/{post_id}/delete con un DELETE
-        12. Si quiere eliminar un comentario utilizar {user_id}/posts/{post_id}/{comment_id}/delete con un DELETE
-        13. Si quiere eliminar una reacción utilizar {user_id}/posts/{post_id}/{reaction_id}/delete con un DELETE
-        14. Si quiere añadir reacción a comentario {user_id}/posts/{post_id}/{comment_id}/react
-        15. Si quiere ver reacción a comentario {user_id}/posts/{post_id}/{comment_id}/{reaction_id}
-        16. Si quiere ver reacción a comentario {user_id}/posts/{post_id}/{comment_id}/{reaction_id}/update
-        17. Si quiere ver reacción a comentario {user_id}/posts/{post_id}/{comment_id}/{reaction_id}/delete
-"""

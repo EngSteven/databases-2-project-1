@@ -69,15 +69,15 @@ class DatabaseMongo:
     """
 
     def get_travels(self):
-        res = list(self.db.travels.find())
+        res = list(self.db.travels.find({"is_active": True}))
         return self.serialize_object_ids(res)
     
     def get_travel(self, travel_id: ObjectId):
-        res = list(self.db.travels.find({"_id": travel_id}))
+        res = list(self.db.travels.find({"_id": travel_id, "is_active": True}))
         return self.serialize_object_ids(res)
     
     def get_user_travels(self, user_id: int):
-        res = list(self.db.travels.find({"user_id": user_id}))
+        res = list(self.db.travels.find({"user_id": user_id, "is_active": True}))
         return self.serialize_object_ids(res)
 
     def register_travel(self, user_id: int, travel: TravelRequest):
@@ -144,15 +144,15 @@ class DatabaseMongo:
     """
 
     def get_destinies(self):
-        res = list(self.db.destinies.find())
+        res = list(self.db.destinies.find({"is_active": True}))
         return self.serialize_object_ids(res)
     
     def get_destiny(self, destiny_id: ObjectId):
-        res = list(self.db.destinies.find({"_id": destiny_id}))
+        res = list(self.db.destinies.find({"_id": destiny_id, "is_active": True}))
         return self.serialize_object_ids(res)
     
     def get_user_destinies(self, user_id: int):
-        res = list(self.db.destinies.find({"user_id": user_id}))
+        res = list(self.db.destinies.find({"user_id": user_id, "is_active": True}))
         return self.serialize_object_ids(res)
 
     def register_destiny(self, user_id: int, destiny: DestinyRequest):
@@ -225,7 +225,15 @@ class DatabaseMongo:
     """
 
     def get_wishlists(self):
-        res = list(self.db.wishlists.find())
+        res = list(self.db.wishlists.find({"is_active": True}))
+        return self.serialize_object_ids(res)
+    
+    def get_wishlist(self, wishlist_id: ObjectId):
+        res = list(self.db.wishlists.find({"_id": wishlist_id, "is_active": True}))
+        return self.serialize_object_ids(res)
+    
+    def get_user_wishlists(self, user_id: int):
+        res = list(self.db.wishlists.find({"user_id": user_id, "is_active": True}))
         return self.serialize_object_ids(res)
 
     def register_wishlist(self, user_id: int, wishlist: WishlistRequest):
@@ -240,7 +248,49 @@ class DatabaseMongo:
         res = self.db.wishlists.insert_one(wishlist_data)
         wishlist_data['_id'] = str(res.inserted_id)     # convertir el ObjectId a cadena
         return wishlist_data
-    
+
+    def deactivate_wishlist(self, wishlist_id: ObjectId):
+        res = self.db.wishlists.update_one(
+            { "_id": wishlist_id },
+            { "$set": { "is_active": False } }
+        )
+        if res.modified_count > 0:
+            return "Lista desactivada con éxito."
+        else:
+            return "No se pudo desactivar la lista."
+        
+    def activate_wishlist(self, wishlist_id: ObjectId):
+        res = self.db.wishlists.update_one(
+            { "_id": wishlist_id },
+            { "$set": { "is_active": True } }
+        )
+        if res.modified_count > 0:
+            return "Lista activada con éxito."
+        else:
+            return "No se pudo activar la lista."
+
+
+    def update_wishlist(self, wishlist_id, wishlist: WishlistRequest):
+        updated_data = {
+            'list_name' : wishlist.list_name,
+            'destinies' : wishlist.destinies,
+        }
+
+        # Filtro para identificar el destino que se va a actualizar
+        filter = {'_id': wishlist_id}
+        
+        # Actualización parcial utilizando $set para modificar solo los campos proporcionados
+        update = {'$set': updated_data}
+        
+        # Realizar la actualización
+        result = self.db.wishlists.update_one(filter, update)
+
+        # Comprobar si se actualizó alguna fila
+        if result.modified_count > 0:
+            return "Lista actualizada"
+        else:
+            return "No se encontró la lista ingresada"  # Indicar que no se encontró o no se modificó el destino
+
     def follow_wishlist(self, wishlist: WishlistFollow):
         wishlist_id = ObjectId(wishlist.wishlist_id)  # ID de la wishlist
         user_id = wishlist.user_id
@@ -268,8 +318,7 @@ class DatabaseMongo:
             return "El usuario ya estaba siguiendo la wishlist o la wishlist ingresada no existe."
 
         
-        
-    def remove_follow_wishlist(self, wishlist: WishlistFollow):
+    def remove_follow_wishlist(self, wishlist: WishlistRequest):
         wishlist_id = ObjectId(wishlist.wishlist_id)  # ID de la wishlist
         user_id = wishlist.user_id
 
@@ -322,6 +371,9 @@ class DatabaseMongo:
             return "Destino eliminado de la wishlist con éxito."
         else:
             return "No se encontró el destino en la wishlist o no se encontró la wishlist."
+
+
+
 
     """
     --------------------------------------------------------------------------------------------------------

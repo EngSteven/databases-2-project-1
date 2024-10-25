@@ -491,11 +491,11 @@ class DatabaseMongo:
     """
     #TODO ver primero el active para mostrar solo las activas
     def get_user_posts(self, user_id):
-        res = list(self.db.posts.find({"usuario_id": user_id, "active": True}))
+        res = list(self.db.posts.find({"usuario_id": user_id, "active": True}).sort("visitas", -1))
         return self.serialize_object_ids(res)
     
     def get_all_posts(self):
-        res = list(self.db.posts.find({"active" : True}))
+        res = list(self.db.posts.find({"active" : True}).sort("visitas", -1))
         return self.serialize_object_ids(res)
 
     def insert_post(self, user_id, post: PostRequest):
@@ -505,6 +505,7 @@ class DatabaseMongo:
             'images': post.images,
             'reacciones': [],
             'comentarios': [],
+            'visitas': 0,
             'active': True
         }
 
@@ -513,9 +514,10 @@ class DatabaseMongo:
         return post_data
 
     def get_post_from_post(self, post_id):
+        self.db.posts.update_one({"_id" : ObjectId(post_id), "$inc" : {"visitas" : 1}})
         res = list(self.db.posts.find(
              {"_id": ObjectId(post_id), "active" : True}
-             ))
+             ).sort("visitas", -1))
         # Si existe, regresa el post
         if res:
             return self.serialize_object_ids(res)

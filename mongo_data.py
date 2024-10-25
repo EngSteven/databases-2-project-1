@@ -826,6 +826,95 @@ class DatabaseMongo:
         else:
             return "Reacción incorrecta"
 
+    def add_reaction_to_destiny(self, user_id, destiny_id, reaccion: LikesRequest):
+        valid_ids = self.verify_existing_ids("destinies", [destiny_id])
+        if isinstance(valid_ids, dict) and "Error" in valid_ids:
+            return valid_ids
+        
+        reaction_data = {
+            "usuario_id" : user_id,
+            "reaccion" : reaccion.reaccion,
+            "active" : True
+        }
+        react_id = self.db.reacciones.insert_one(reaction_data).inserted_id
+        if reaccion.reaccion in self.reacciones:    
+            res = self.db.destinies.update_one(
+                { "_id": ObjectId(destiny_id)},
+                { "$push": { "reacciones": str(react_id) } }
+            )
+            if res.modified_count > 0:
+                return "Reacción agregada al destino con éxito."
+            else:
+                return "No se pudo agregar la reacción al destino."
+        return "Reacción no encontrada"
+            
+
+    # Quitar reacciones de los posts 
+    def remove_reaction_from_destiny(self, destiny_id, react_id):
+        valid_post = self.verify_existing_ids("destinies", [destiny_id])
+        if isinstance(valid_post, dict) and "Error" in valid_post:
+            return "Destino no existe" 
+        valid_reaction = self.verify_existing_ids_posts("reacciones", [react_id])
+        if isinstance(valid_reaction, dict) and "Error" in valid_reaction:
+            return "Reaccion no existe" 
+        delete = self.db.reacciones.update_one(
+            { "_id": ObjectId(react_id)},
+            { "$set": { "active": False }}
+        )
+        res = self.db.destinies.update_one(
+            { "_id": ObjectId(destiny_id)},
+            { "$pull": { "reacciones": react_id} }
+        )
+        if res.modified_count > 0 and delete.modified_count > 0:
+            return "Reacción removida del destino con éxito."
+        else:
+            return "No se pudo remover la reacción del destino."
+
+    def get_reaction_from_destiny(self, react_id):
+        valid_reaction = self.verify_existing_ids_posts("reacciones", [react_id])
+        if isinstance(valid_reaction, dict) and "Error" in valid_reaction:
+            return "Reaccion no existe" 
+        res = list(self.db.reacciones.find(
+             {"_id": ObjectId(react_id)}
+             ))
+        # Si existe, regresa la reaccion pedida
+        return self.serialize_object_ids(res)
+    
+    def get_all_reactions_from_post(self, destiny_id):
+        valid_reaction = self.verify_existing_ids("destinies", [destiny_id])
+        if isinstance(valid_reaction, dict) and "Error" in valid_reaction:
+            return "Destino no existe" 
+        
+        post = self.db.destinies.find_one({"_id": ObjectId(destiny_id), "active": True})
+
+        if post:
+            # Obtener los IDs de los reacciones
+            react_ids = post.get("reacciones", [])
+            
+            # Obtener los reacciones correspondientes a los IDs
+            reactions = []
+            if react_ids:
+                reactions = list(self.db.reacciones.find({"_id": {"$in": [ObjectId(react_id) for react_id in react_ids]}, "active": True}))
+        
+        # Si existe, regresa la reaccion pedida
+        return self.serialize_object_ids(reactions)
+        
+    def set_reaction_from_post(self, react_id, P_reaction: LikesUpdateRequest):
+        valid_reaction = self.verify_existing_ids_posts("reacciones", [react_id])
+        if isinstance(valid_reaction, dict) and "Error" in valid_reaction:
+            return "Reaccion no existe" 
+        if P_reaction.reaccion in reacciones:
+            res = self.db.reacciones.update_one(
+                { "_id": ObjectId(react_id)},
+                { "$set": { "reaccion": P_reaction.reaccion } }
+            )
+            if res.modified_count > 0:
+                return "Reacción del destino modificada con éxito."
+            else:
+                return "No se pudo modificar la reacción del destino."
+        else:
+            return "Reacción incorrecta"
+
     # Añadir reacciones a los comentarios
     def add_reaction_to_comment(self, post_id, comment_id, react_id):
         res = self.db.posts.update_one(

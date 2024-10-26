@@ -216,7 +216,7 @@ async def post_reaction(user_id: int, comment_id: str, reaccion: LikesRequest):
     destiny_data = LikesRequest(
         reaccion = reaccion.reaccion
     )
-    res = db.add_reaction_to_comment(user_id, comment_id, LikesRequest)
+    res = db.add_reaction_to_comment(user_id, comment_id, destiny_data)
     print("Reaccion: ", res)
     return{"Reaccion" : res}
 

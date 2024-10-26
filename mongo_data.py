@@ -703,7 +703,7 @@ class DatabaseMongo:
         if isinstance(valid_reaction, dict) and "Error" in valid_reaction:
             return "Destino no existe" 
         
-        post = self.db.destinies.find_one({"_id": ObjectId(destiny_id), "active": True})
+        post = self.db.destinies.find_one({"_id": ObjectId(destiny_id), "is_active": True})
 
         if post:
             # Obtener los IDs de los comentarios
@@ -885,7 +885,7 @@ class DatabaseMongo:
         if isinstance(valid_reaction, dict) and "Error" in valid_reaction:
             return "Destino no existe" 
         
-        post = self.db.destinies.find_one({"_id": ObjectId(destiny_id), "active": True})
+        post = self.db.destinies.find_one({"_id": ObjectId(destiny_id), "is_active": True})
 
         if post:
             # Obtener los IDs de los reacciones
@@ -971,11 +971,11 @@ class DatabaseMongo:
         return self.serialize_object_ids(res)
     
     def get_all_reactions_from_comment(self, comment_id):
-        valid_reaction = self.verify_existing_ids("comentarios", [comment_id])
+        valid_reaction = self.verify_existing_ids_posts("comentarios", [comment_id])
         if isinstance(valid_reaction, dict) and "Error" in valid_reaction:
             return "Comentario no existe" 
         
-        post = self.db.destinies.find_one({"_id": ObjectId(comment_id), "active": True})
+        post = self.db.comentarios.find_one({"_id": ObjectId(comment_id), "active": True})
 
         if post:
             # Obtener los IDs de los reacciones

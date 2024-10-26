@@ -55,6 +55,8 @@ COMMENTS
 --------------------------------------------------
 """
 
+### ** PARA POSTS **
+
 @router.post("/{user_id}/posts/{post_id}/comment")
 async def post_comment(user_id: int, post_id: str, comment: CommentRequest):
     post_data = CommentRequest(
@@ -90,11 +92,52 @@ async def delete_comment(post_id: str, comment_id: str):
     db.remove_comment_from_post(post_id, comment_id)
     return {"Comentario eliminado exitosamente"}
 
+
+### ** PARA DESTINIES **
+
+@router.post("/{user_id}/destinies/{destiny_id}/comment")
+async def post_comment(user_id: int, destiny_id: str, comment: CommentRequest):
+    destiny_data = CommentRequest(
+        coment_text = comment.coment_text
+    )
+    res = db.add_comment_to_destiny(user_id, destiny_id, destiny_data)
+    print("Comentario: ", res)
+    return{"Comentario" : res}
+
+@router.get("/{user_id}/destinies/{destiny_id}/comment/{comment_id}")
+async def get_comment(comment_id: str):
+    res = db.get_comment_from_destiny(comment_id)
+    print("Comentario:", res)
+    return {"Comentario": res}
+
+@router.get("/{user_id}/destinies/{destiny_id}/comments/all")
+async def get_comment(destiny_id: str):
+    res = db.get_all_comments_from_destiny(destiny_id)
+    print("Comentario:", res)
+    return {"Comentarios": res}
+
+@router.put("/{user_id}/destinies/{destiny_id}/comment/{comment_id}/update")
+async def update_comment(comment_id: str, comment: CommentUpdateRequest):
+    destiny_data = CommentUpdateRequest(
+        coment_text = comment.coment_text
+    )
+    res = db.set_comment_from_destiny(comment_id, destiny_data)
+    print("Destiny: ", res)
+    return {"Destiny actualizado": res}
+
+@router.delete("/{user_id}/destinies/{destiny_id}/comment/{comment_id}/delete")
+async def delete_comment(destiny_id: str, comment_id: str): 
+    db.remove_comment_from_destiny(destiny_id, comment_id)
+    return {"Comentario eliminado exitosamente"}
+
+
 """
 --------------------------------------------------
 REACTIONS
 --------------------------------------------------
 """
+
+### ** PARA POSTS **
 
 @router.post("/{user_id}/posts/{post_id}/react")
 async def post_reaction(user_id: int, post_id: str, reaccion: LikesRequest):
@@ -130,3 +173,80 @@ async def delete_reaction(post_id: str, reaction_id: str):
     res = db.remove_reaction_from_post(post_id, reaction_id)
     return {res}
 
+### ** PARA DESTINIES **
+
+@router.post("/{user_id}/destinies/{destiny_id}/react")
+async def post_reaction(user_id: int, destiny_id: str, reaccion: LikesRequest):
+    destiny_data = LikesRequest(
+        reaccion = reaccion.reaccion
+    )
+    res = db.add_reaction_to_destiny(user_id, destiny_id, destiny_data)
+    print("Reaccion: ", res)
+    return{"Reaccion" : res}
+
+@router.get("/{user_id}/destinies/{destiny_id}/reaction/{reaction_id}")
+async def get_reaction(reaction_id: str):
+    res = db.get_reaction_from_destiny(reaction_id)
+    print("Reaccion:", res)
+    return {"Reaccion": res}
+
+@router.get("/{user_id}/destinies/{destiny_id}/reactions/all")
+async def get_comment(destiny_id: str):
+    res = db.get_all_reactions_from_destiny(destiny_id)
+    return {"Reacciones": res}
+
+@router.put("/{user_id}/destinies/{destiny_id}/reaction/{reaction_id}/update")
+async def update_reaction(reaction_id: str, reaccion: LikesUpdateRequest):
+    destiny_data = LikesUpdateRequest(
+        reaccion = reaccion.reaccion
+    )
+    res = db.set_reaction_from_destiny(reaction_id, destiny_data)
+    print("Reaccion: ", res)
+    return {"Reaccion actualizada": res}
+
+@router.delete("/{user_id}/destinies/{destiny_id}/reaction/{reaction_id}/delete")
+async def delete_reaction(destiny_id: str, reaction_id: str):
+    res = db.remove_reaction_from_destiny(destiny_id, reaction_id)
+    return {res}
+
+"""
+--------------------------------------------------
+DESTINIES
+--------------------------------------------------
+"""
+
+@router.get("/destinies")
+async def get_destinies():
+    res = db.get_all_destinies()    
+    return {"destinies recientes": res}
+
+@router.post("/{user_id}/destinies/destiny")
+async def insert_destiny(user_id: int, destiny: DestinyRequest): #Sirve
+    destiny_data = DestinyRequest(
+        text = destiny.text,
+        images = destiny.images,
+    )
+    res = db.insert_destiny(user_id, destiny_data)
+    return {"Destiny ingresado": res}
+
+@router.get("/{user_id}/destinies")
+async def get_destinies(user_id: int):
+    res = db.get_user_destinies(user_id)    
+    return {"Destinies recientes": res}
+
+@router.get("/{user_id}/destinies/{destiny_id}")
+async def get_destiny(destiny_id: str):
+    res = db.get_destiny_from_destinies(ObjectId(destiny_id)) 
+    return {"Destiny": res}
+
+@router.put("/{user_id}/destinies/{destiny_id}/update")
+async def update_destiny(destiny_id: str, destiny: DestinyUpdateRequest):  
+    destiny_data = DestinyUpdateRequest(
+        text = destiny.text
+    )
+    res = db.set_destiny(destiny_id, destiny_data)
+    return {"Destiny actualizado": res}
+
+@router.delete("/{user_id}/destinies/{destiny_id}/delete")
+async def delete_destiny(destiny_id: str):
+    return {db.delete_destiny(destiny_id)}

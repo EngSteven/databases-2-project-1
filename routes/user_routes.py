@@ -6,6 +6,11 @@ from auth import *
 router = APIRouter()
 db = Database()
 
+@router.post("/users/exist/{user_id}")
+async def check_user_exist(user_id: int):
+    res = db.check_user_exists(user_id)
+    return res
+
 @router.post("/users/user")
 async def register_user(user: UserRegister):
     user_data = UserRegister(

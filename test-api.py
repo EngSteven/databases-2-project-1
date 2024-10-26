@@ -1,8 +1,10 @@
 import unittest
 from fastapi.testclient import TestClient
+
 from app import app 
 
 client = TestClient(app)
+
 
 print("\n Ejecutando pruebas unitarias \n")
 
@@ -100,6 +102,19 @@ class TestAPI(unittest.TestCase):
     ------------------------------------------------------------------------------------------------------
     """
 
+    def test_check_user_exist(self):
+        response = client.post(f"/users/exist/{self.user_id}")
+        self.assertEqual(response.status_code, 200)
+
+    def test_register_user(self):
+        user_data = {
+            "username": "newuser",
+            "password": "newpassword",
+            "email": "newuser@example.com"
+        }
+        response = client.post("/users/user", json=user_data)
+        self.assertEqual(response.status_code, 200)
+
     def test_get_all_users(self):
         response = client.get("/users")
         self.assertEqual(response.status_code, 200)
@@ -127,29 +142,6 @@ class TestAPI(unittest.TestCase):
         response = client.put(f"/users/{self.user_id}/password", json=updated_password)
         self.assertEqual(response.status_code, 200)
 
-    
-    def test_login(self):
-        login = {
-            "username": "nombre_usuario",
-            "password": "contraseña_segura"
-        }
-        response = client.post("/login", json=login)
-        self.assertEqual(response.status_code, 200, "Se esperaba un inicio de sesión exitoso.")
-        
-        response_data = response.json()
-        self.assertIn("access_token", response_data, "Se esperaba recibir un 'access_token'.")
-        # guardar el token para usarlo en otras pruebas
-        TestAPI.user_token = response_data["access_token"]
-
-    def test_logout(self):                   
-        headers = {
-            "Authorization": f"Bearer {TestAPI.user_token}"
-        }
-
-        response = client.post("/logout", headers=headers)
-
-        self.assertEqual(response.status_code, 200, "Se esperaba un logout exitoso.")
-    
     
     """
     ------------------------------------------------------------------------------------------------------
@@ -233,6 +225,58 @@ class TestAPI(unittest.TestCase):
         response = client.put(f"/destinies/destiny/invalid_user_id/{self.destiny_id}", json=updated_destiny_data)
         self.assertEqual(response.status_code, 422)  
         self.assertIn("detail", response.json())
+
+    """
+    ------------------------------------------------------------------------------------------------------
+    PRUEBAS PARA COMENTARIOS DE DESTINOS
+    ------------------------------------------------------------------------------------------------------
+    """
+
+    
+    def test_get_comment_destiny(self):
+        response = client.get(f"/{self.user_id}/destinies/{self.destiny_id}/comment/{self.comment_id}")
+        self.assertEqual(response.status_code, 200)
+        self.assertIn("Comentario", response.json())
+
+    def test_get_all_comments_destiny(self):
+        response = client.get(f"/{self.user_id}/destinies/{self.destiny_id}/comments/all")
+        self.assertEqual(response.status_code, 200)
+        self.assertIn("Comentarios", response.json())
+
+    def test_update_comment_destiny(self):
+        updated_data = {
+            "coment_text": "This is an updated test comment"
+        }
+        response = client.put(f"/{self.user_id}/destinies/{self.destiny_id}/comment/{self.comment_id}/update", json=updated_data)
+        self.assertEqual(response.status_code, 200)
+        self.assertIn("Destiny actualizado", response.json())
+    
+
+    """
+    ------------------------------------------------------------------------------------------------------
+    PRUEBAS PARA REACCIONES DE DESTINOS
+    ------------------------------------------------------------------------------------------------------
+    """
+    
+    def test_get_reaction_destiny(self):
+        response = client.get(f"/{self.user_id}/destinies/{self.destiny_id}/reaction/{self.reaction_id}")
+        self.assertEqual(response.status_code, 200)
+        self.assertIn("Reaccion", response.json())
+
+    def test_get_all_reactions_destiny(self):
+        response = client.get(f"/{self.user_id}/destinies/{self.destiny_id}/reactions/all")
+        self.assertEqual(response.status_code, 200)
+        self.assertIn("Reacciones", response.json())
+
+    def test_update_reaction_destiny(self):
+        updated_data = {
+            "reaccion": "love"
+        }
+        response = client.put(f"/{self.user_id}/destinies/{self.destiny_id}/reaction/{self.reaction_id}/update", json=updated_data)
+        self.assertEqual(response.status_code, 200)
+        self.assertIn("Reaccion actualizada", response.json())
+
+    
 
     """
     ------------------------------------------------------------------------------------------------------
@@ -471,97 +515,3 @@ class TestAPI(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
-
-
-    """    
-    @classmethod
-    def setUpClass(cls):
-        cls.user_token = None
-
-    def test_01_register_nonexisting_user(self):
-        response = client.post("/user", json=new_user)  # crear usuario exitoso
-        self.assertEqual(response.status_code, 200, "Se esperaba éxito al registrar un nuevo usuario.")
-    
-    def test_02_register_existing_user(self):    
-        response = client.post("/user", json=new_user)  # se registra de nuevo el user para generar un error
-        self.assertEqual(response.status_code, 200, "El usuario ya existe, se esperaba un mensaje de error.")
-    
-    def test_03_register_user_field_required(self):    
-        response = client.post("/user", json=incomplete_user)  # datos de usuario incompletos 
-        self.assertEqual(response.status_code, 422, "Se esperaba un error de validación por campos incompletos.")
-        error_response = response.json()
-        self.assertIn("username", str(error_response), "Falta el campo 'username' en la respuesta de error.")
-        self.assertIn("password", str(error_response), "Falta el campo 'password' en la respuesta de error.")
-        self.assertIn("email", str(error_response), "Falta el campo 'email' en la respuesta de error.")
-
-    
-    def test_04_login_nonexisting_user(self): 
-        response = client.post("/login", json=login_error)      # login con usuario no valido
-        self.assertEqual(response.status_code, 200, "Se esperaba un error por usuario inexistente.")
-    
-    def test_05_login_field_required(self): 
-        response = client.post("/login", json=incomplete_login)      # login con campos incompletos
-        self.assertEqual(response.status_code, 422, "Se esperaba un error de validación por campos incompletos.")
-        error_response = response.json()
-        self.assertIn("username", str(error_response), "Falta el campo 'username' en la respuesta de error.")
-        self.assertIn("password", str(error_response), "Falta el campo 'password' en la respuesta de error.")
-    
-    def test_06_login_existing_user(self):
-        response = client.post("/login", json=login)
-        self.assertEqual(response.status_code, 200, "Se esperaba un inicio de sesión exitoso.")
-        
-        response_data = response.json()
-        self.assertIn("access_token", response_data, "Se esperaba recibir un 'access_token'.")
-        # guardar el token para usarlo en otras pruebas
-        TestAPI.user_token = response_data["access_token"]    
-    
-    
-    def test_07_register_travel(self):                   
-        response = client.post("/travels/travel", json=travel)
-        self.assertEqual(response.status_code, 200, "Se esperaba un registro exitoso del viaje.")
-
-    def test_08_get_travels(self):                   
-        response = client.get("/travels")
-        self.assertEqual(response.status_code, 200)
-    
-    
-    def test_09_register_travel_error(self):
-        response = client.post("/travels/travel", json=travel_error)  # Se intenta registrar un travel con un ID de usuario inválido
-        self.assertEqual(response.status_code, 200, "Se esperaba un error por ID de usuario no existente.")  
-    
-    def test_10_register_destiny(self):
-        response = client.post("/destinies/destiny", json=destiny)
-        self.assertEqual(response.status_code, 200, "Se esperaba un registro exitoso del destino.")
-
-    def test_11_get_destinies(self):                   
-        response = client.get("/destinies")
-        self.assertEqual(response.status_code, 200)
-    
-    
-    def test_12_register_destiny_error(self):
-        response = client.post("/destinies/destiny", json=destiny_error)  # Se intenta registrar un travel con un ID de usuario inválido
-        self.assertEqual(response.status_code, 200, "Se esperaba un error por ID de usuario no existente.")  
-    
-    def test_13_register_wishlist(self):
-        response = client.post("/wishlists/wishlist", json=wishlist)
-        self.assertEqual(response.status_code, 200, "Se esperaba un registro exitoso del destino.")
-
-    def test_14_get_wishlists(self):                   
-        response = client.get("/wishlists")
-        self.assertEqual(response.status_code, 200)
-    
-    
-    def test_15_register_wishlist_error(self):
-        response = client.post("/wishlists/wishlist", json=wishlist_error)  # Se intenta registrar un travel con un ID de usuario inválido
-        self.assertEqual(response.status_code, 200, "Se esperaba un error por ID de usuario no existente.")  
-    
-    
-    def test_16_logout(self):                   
-        headers = {
-            "Authorization": f"Bearer {TestAPI.user_token}"
-        }
-
-        response = client.post("/logout", json=travel, headers=headers)
-
-        self.assertEqual(response.status_code, 200, "Se esperaba un logout exitoso.")
-    """

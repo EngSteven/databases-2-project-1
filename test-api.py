@@ -1,8 +1,12 @@
 import unittest
 from fastapi.testclient import TestClient
+from postgresql_data import Database  
+
 from app import app 
 
 client = TestClient(app)
+db = Database()
+
 
 print("\n Ejecutando pruebas unitarias \n")
 
@@ -99,6 +103,19 @@ class TestAPI(unittest.TestCase):
     PRUEBAS PARA USUARIOS
     ------------------------------------------------------------------------------------------------------
     """
+
+    def test_check_user_exist(self):
+        response = client.post(f"/users/exist/{self.user_id}")
+        self.assertEqual(response.status_code, 200)
+
+    def test_register_user(self):
+        user_data = {
+            "username": "newuser",
+            "password": "newpassword",
+            "email": "newuser@example.com"
+        }
+        response = client.post("/users/user", json=user_data)
+        self.assertEqual(response.status_code, 200)
 
     def test_get_all_users(self):
         response = client.get("/users")
@@ -233,6 +250,58 @@ class TestAPI(unittest.TestCase):
         response = client.put(f"/destinies/destiny/invalid_user_id/{self.destiny_id}", json=updated_destiny_data)
         self.assertEqual(response.status_code, 422)  
         self.assertIn("detail", response.json())
+
+    """
+    ------------------------------------------------------------------------------------------------------
+    PRUEBAS PARA COMENTARIOS DE DESTINOS
+    ------------------------------------------------------------------------------------------------------
+    """
+
+    
+    def test_get_comment_destiny(self):
+        response = client.get(f"/{self.user_id}/destinies/{self.destiny_id}/comment/{self.comment_id}")
+        self.assertEqual(response.status_code, 200)
+        self.assertIn("Comentario", response.json())
+
+    def test_get_all_comments_destiny(self):
+        response = client.get(f"/{self.user_id}/destinies/{self.destiny_id}/comments/all")
+        self.assertEqual(response.status_code, 200)
+        self.assertIn("Comentarios", response.json())
+
+    def test_update_comment_destiny(self):
+        updated_data = {
+            "coment_text": "This is an updated test comment"
+        }
+        response = client.put(f"/{self.user_id}/destinies/{self.destiny_id}/comment/{self.comment_id}/update", json=updated_data)
+        self.assertEqual(response.status_code, 200)
+        self.assertIn("Destiny actualizado", response.json())
+    
+
+    """
+    ------------------------------------------------------------------------------------------------------
+    PRUEBAS PARA REACCIONES DE DESTINOS
+    ------------------------------------------------------------------------------------------------------
+    """
+    
+    def test_get_reaction_destiny(self):
+        response = client.get(f"/{self.user_id}/destinies/{self.destiny_id}/reaction/{self.reaction_id}")
+        self.assertEqual(response.status_code, 200)
+        self.assertIn("Reaccion", response.json())
+
+    def test_get_all_reactions_destiny(self):
+        response = client.get(f"/{self.user_id}/destinies/{self.destiny_id}/reactions/all")
+        self.assertEqual(response.status_code, 200)
+        self.assertIn("Reacciones", response.json())
+
+    def test_update_reaction_destiny(self):
+        updated_data = {
+            "reaccion": "love"
+        }
+        response = client.put(f"/{self.user_id}/destinies/{self.destiny_id}/reaction/{self.reaction_id}/update", json=updated_data)
+        self.assertEqual(response.status_code, 200)
+        self.assertIn("Reaccion actualizada", response.json())
+
+    
 
     """
     ------------------------------------------------------------------------------------------------------

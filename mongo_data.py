@@ -575,8 +575,8 @@ class DatabaseMongo:
             { "_id": ObjectId(post_id)},
             { "$push": { "comentarios": str(comment_id) } }
         )
-        if res.modified_count > 0:
-            return "Comentario agregado al post con éxito."
+        if res.modified_count > 0:    
+            return str(comment_id)
         else:
             return "No se pudo agregar el comentario al post."
     
@@ -754,7 +754,7 @@ class DatabaseMongo:
                 { "$push": { "reacciones": str(react_id) } }
             )
             if res.modified_count > 0:
-                return "Reacción agregada al post con éxito."
+                return str(react_id)
             else:
                 return "No se pudo agregar la reacción al post."
         return "Reacción no encontrada"

@@ -1,8 +1,9 @@
+import json
 from pymongo import MongoClient
 from models.schemas import *
 from bson import ObjectId
 import os
-
+import redis 
 config = {
     "host": os.getenv("MONGO_HOST"), 
     "port": int(os.getenv("MONGO_PORT")), 
@@ -13,6 +14,7 @@ config = {
 
 reacciones = ["me gusta", "me encanta", "me emociona", "me asombra", "me entristece", "me enoja"]
 
+redis_client = redis.Redis(host="redis", port=6379, db=0, decode_responses=True)
 
 class DatabaseMongo:
     def __init__(self):
@@ -495,7 +497,13 @@ class DatabaseMongo:
         return self.serialize_object_ids(res)
     
     def get_all_posts(self):
+        cached_post = redis_client.get("all_posts")
+
+        if cached_post:
+            return json.loads(cached_post)
+
         res = list(self.db.posts.find({"active" : True}).sort("visitas", -1))
+        redis_client.setex("all_posts", 600, json.dumps(res, default=str))
         return self.serialize_object_ids(res)
 
     def insert_post(self, user_id, post: PostRequest):

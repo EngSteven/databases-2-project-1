@@ -51,4 +51,4 @@ docker compose exec webapp poetry run coverage report
 # Enlace a la documentación de la API 
 
 Para visualizar la documentación de la api ingrese a:
-[Click here](https://www.postman.com/technical-meteorologist-23381202/workspace/rest-api-py1-bd2-social-network/documentation/37666062-96306b9c-26f5-4e68-b97e-c99637c824b7)
+[Click here](https://documenter.getpostman.com/view/37666062/2sAY4sj4Xq)

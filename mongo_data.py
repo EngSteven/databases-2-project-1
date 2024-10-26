@@ -620,6 +620,27 @@ class DatabaseMongo:
         # Si existe, regresa la reaccion pedida
         return self.serialize_object_ids(res)
     
+    def get_top_comment_posts(self,limit=5):
+        # Obtener posts ordenados por cantidad de comentarios
+        top_posts = self.db.posts.find({"active": True}).sort("comentarios", -1).limit(limit)
+
+        # Extraer comentarios de cada post y estructurarlos
+        comentarios_populares = []
+        for post in top_posts:
+            for comentario_id in post.get("comentarios", []):
+                # Obtener el comentario completo usando su ObjectId
+                comentario = self.db.comentarios.find_one({"_id": ObjectId(comentario_id)})
+                
+                if comentario:
+                    # Convertir el ObjectId a string
+                    comentario["_id"] = str(comentario["_id"])
+                    comentarios_populares.append(comentario)
+
+        # Guardar los comentarios populares en Redis
+        redis_client.set("comentarios_populares", json.dumps(comentarios_populares))
+        
+        return {"comentarios_populares": comentarios_populares}
+
     def get_all_comments_from_post(self, post_id):
         valid_reaction = self.verify_existing_ids_posts("posts", [post_id])
         if isinstance(valid_reaction, dict) and "Error" in valid_reaction:

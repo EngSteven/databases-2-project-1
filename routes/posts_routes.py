@@ -245,3 +245,7 @@ async def delete_reaction(comment_id: str, reaction_id: str):
     res = db.remove_reaction_from_comment(comment_id, reaction_id)
     return {res}
 
+@router.get("/{user_id}/top_comments")
+async def top_comments():
+    res = db.get_top_comment_posts(5)
+    return{"Top comentarios": res}

@@ -514,7 +514,7 @@ class DatabaseMongo:
         return post_data
 
     def get_post_from_post(self, post_id):
-        self.db.posts.update_one({"_id" : ObjectId(post_id), "$inc" : {"visitas" : 1}})
+        self.db.posts.update_one({"_id": ObjectId(post_id)}, {"$inc": {"visitas": 1}})
         res = list(self.db.posts.find(
              {"_id": ObjectId(post_id), "active" : True}
              ).sort("visitas", -1))

@@ -209,6 +209,42 @@ async def delete_reaction(destiny_id: str, reaction_id: str):
     res = db.remove_reaction_from_destiny(destiny_id, reaction_id)
     return {res}
 
+### ** PARA COMENTARIOS **
+
+@router.post("/{user_id}/comments/{comment_id}/react")
+async def post_reaction(user_id: int, comment_id: str, reaccion: LikesRequest):
+    destiny_data = LikesRequest(
+        reaccion = reaccion.reaccion
+    )
+    res = db.add_reaction_to_comment(user_id, comment_id, LikesRequest)
+    print("Reaccion: ", res)
+    return{"Reaccion" : res}
+
+@router.get("/{user_id}/comments/{comment_id}/reaction/{reaction_id}")
+async def get_reaction(reaction_id: str):
+    res = db.get_reaction_from_comment(reaction_id)
+    print("Reaccion:", res)
+    return {"Reaccion": res}
+
+@router.get("/{user_id}/comments/{comment_id}/reactions/all")
+async def get_comment(comment_id: str):
+    res = db.get_all_reactions_from_comment(comment_id)
+    return {"Reacciones": res}
+
+@router.put("/{user_id}/comments/{comment_id}/reaction/{reaction_id}/update")
+async def update_reaction(reaction_id: str, reaccion: LikesUpdateRequest):
+    comment_data = LikesUpdateRequest(
+        reaccion = reaccion.reaccion
+    )
+    res = db.set_reaction_from_comment(reaction_id, comment_data)
+    print("Reaccion: ", res)
+    return {"Reaccion actualizada": res}
+
+@router.delete("/{user_id}/comments/{comment_id}/reaction/{reaction_id}/delete")
+async def delete_reaction(comment_id: str, reaction_id: str):
+    res = db.remove_reaction_from_comment(comment_id, reaction_id)
+    return {res}
+
 """
 --------------------------------------------------
 DESTINIES

@@ -1,0 +1,5 @@
+[run]
+omit =
+    mongo_data.py
+    postgresql_data.py
+    auth.py

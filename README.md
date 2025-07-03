@@ -1,4 +1,4 @@
-# Proyecto 1 de Base de datos 2 TEC (Red Social de Viajes)
+# Proyecto 1 de base de datos 2 TEC (Red Social de Viajes)
 
 ## Autores: 
 - Steven Sequeira 
